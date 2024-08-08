@@ -62,6 +62,10 @@ print(qr_data)
 - `bill_number`: Reference number for the bill.
 - `terminal_label`: Label for the terminal.
 
+## Bakong Official Documentation
+
+KHQR SDK Documentation: [https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf](https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf)
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/bsthen/bakong-khqr/blob/main/LICENSE) file for details.
