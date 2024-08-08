@@ -23,9 +23,9 @@ setup(
     python_requires='>=3.6',
     install_requires=[],
     include_package_data=True,
-    entry_points={
-        'console_scripts': [
-            # Add any command-line scripts here
-        ],
+    project_urls={
+        'Documentation': 'https://github.com/bsthen/bakong-khqr#readme',  # Replace with your documentation URL
+        'Source': 'https://github.com/bsthen/bakong-khqr',  # Replace with your GitHub URL
+        'Tracker': 'https://github.com/bsthen/bakong-khqr/issues',  # Replace with your issue tracker URL
     },
 )
