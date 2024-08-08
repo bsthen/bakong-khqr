@@ -1,6 +1,6 @@
 # bakong-khqr
 
-SDK for creating QR codes for transactions supported by the Bakong app.
+Unofficial Bakong KHQR module for creating QR codes transactions supported by the Bakong KHQR (NBC).
 
 ## Installation
 
