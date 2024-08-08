@@ -7,15 +7,15 @@ class TestKHQR(unittest.TestCase):
 
     def test_create_qr(self):
         qr_data = self.khqr.create_qr(
-            bank_account="sothen_ban@wing",
-            merchant_name="Sothen Ban",
-            merchant_city="Phnom Penh",
+            bank_account='sothen_ban@wing',
+            merchant_name='Sothen Ban',
+            merchant_city='Phnom Penh',
             amount=1.00,
-            currency="USD",
-            store_label="Store A",
-            phone_number="123456789",
-            bill_number="TRX01876883",
-            terminal_label="Terminal 1"
+            currency='USD',
+            store_label='Shop A',
+            phone_number='85515605227',
+            bill_number='TRX019283775',
+            terminal_label='Buy Course'
         )
         print(f"Generated QR Data: {qr_data}")
         # self.assertIn('1.00', qr_data)

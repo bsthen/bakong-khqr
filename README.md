@@ -37,16 +37,17 @@ qr_data = khqr.create_qr(
     bank_account='sothen_ban@wing',
     merchant_name='Sothen Ban',
     merchant_city='Phnom Penh',
-    amount='1.00',
+    amount=1.00,
     currency='USD',
-    store_label='Sothen Shop',
-    phone_number='855963322209',
+    store_label='Shop A',
+    phone_number='85515605227',
     bill_number='TRX019283775',
     terminal_label='Buy Course'
 )
 
 # Print or use the generated QR code data
 print(qr_data)
+# Result: 00020101021229190015sothen_ban@wing520459995802KH5910Sothen Ban6010Phnom Penh99170013172309296559054011530384062550112TRX0192837750211855156052270306Shop A0710Buy Course63040D95
 ```
 
 ### Parameters for `create_qr` Method
