@@ -9,7 +9,7 @@ class MerchantName:
         Initialize the MerchantName class with settings from the EMV configuration.
         """
         self.merchant_name_tag = emv.merchant_name
-        self.max_length = 25  # Maximum length for the merchant name
+        self.max_length = emv.invalid_length_merchant_name
 
     def value(self, merchant_name: str) -> str:
         """

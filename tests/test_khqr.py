@@ -18,7 +18,6 @@ class TestKHQR(unittest.TestCase):
             terminal_label='Buy Course'
         )
         print(f"Generated QR Data: {qr_data}")
-        # self.assertIn('1.00', qr_data)
 
 if __name__ == '__main__':
     unittest.main()

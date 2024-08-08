@@ -9,7 +9,7 @@ class GlobalUniqueIdentifier:
         """
         self.payload_format_indicator = emv.payload_format_indicator
         self.merchant_account_information_individual = emv.merchant_account_information_individual
-        self.max_length = 32  # Maximum length for the bank account number
+        self.max_length = emv.invalid_length_bakong_account
 
     def value(self, bank_account: str) -> str:
         """

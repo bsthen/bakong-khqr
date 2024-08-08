@@ -5,7 +5,7 @@ emv = EMV()
 class Amount:
     def __init__(self):
         self.transaction_amount = emv.transaction_amount
-        self.max_length = 13  # Maximum length for the formatted amount
+        self.max_length = emv.invalid_length_amount
         
     def value(self, amount: float) -> str:
         """

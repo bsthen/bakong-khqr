@@ -9,7 +9,7 @@ class MerchantCity:
         Initialize the MerchantCity class with settings from the EMV configuration.
         """
         self.merchant_city_tag = emv.merchant_city
-        self.max_length = 15  # Maximum length for the merchant city name
+        self.max_length = emv.invalid_length_merchant_city
 
     def value(self, merchant_city: str) -> str:
         """
