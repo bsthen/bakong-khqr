@@ -1,6 +1,6 @@
 # bakong-khqr
 
-Unofficial Bakong KHQR module for creating QR codes transactions supported by the Bakong KHQR (NBC).
+A Python library for generating QR codes for transactions compliant with the Bakong KHQR standard.
 
 ## Installation
 
