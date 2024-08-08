@@ -1,6 +1,6 @@
 # bakong-khqr (Unofficial)
 
-A Python library for generating QR codes for transactions compliant with the Bakong KHQR standard.
+A Python library for generating QR codes transactions compliant with the Bakong KHQR standard.
 
 ## Installation
 
@@ -40,7 +40,7 @@ qr_data = khqr.create_qr(
     amount=1.00,
     currency='USD',
     store_label='Shop A',
-    phone_number='85515605227',
+    phone_number='85512345678',
     bill_number='TRX019283775',
     terminal_label='Buy Course'
 )

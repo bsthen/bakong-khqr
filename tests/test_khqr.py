@@ -13,7 +13,7 @@ class TestKHQR(unittest.TestCase):
             amount='15',
             currency='USD',
             store_label='Shop A',
-            phone_number='85515605227',
+            phone_number='85512345678',
             bill_number='TRX019283775',
             terminal_label='Buy Course'
         )
