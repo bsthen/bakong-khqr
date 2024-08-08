@@ -10,7 +10,7 @@ setup(
     version="0.1.0",
     author="BAN Sothen",
     author_email="bansokthen@gmail.com",
-    description="Unofficial SDK Module for creating QR codes for transactions supported by the Bakong KHQR (NBC)",
+    description="A Python library for generating QR codes for transactions compliant with the Bakong KHQR standard. (Unofficial NBC Library)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/bsthen/bakong-khqr",
