@@ -18,7 +18,10 @@ class TransactionCurrency:
         - currency (str): Currency code, either 'USD' or 'KHR'.
 
         Returns:
-        - str: Formatted QR code data for the specified currency, or an empty string if currency is invalid.
+        - str: Formatted QR code data for the specified currency.
+
+        Raises:
+        - ValueError: If the currency code is not 'USD' or 'KHR'.
         """
         currency = currency.upper()  # Normalize currency input
 
@@ -27,7 +30,7 @@ class TransactionCurrency:
         elif currency == "KHR":
             currency_value = self.currency_khr
         else:
-            return ""  # Return an empty string for unsupported currencies
+            raise ValueError(f"Invalid currency code '{currency}'. Supported codes are 'USD' and 'KHR'.")
 
         # Format the length of the currency value
         length_of_currency = str(len(currency_value)).zfill(2)

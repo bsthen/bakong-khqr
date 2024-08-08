@@ -10,7 +10,7 @@ class TestKHQR(unittest.TestCase):
             bank_account='sothen_ban@wing',
             merchant_name='Sothen Ban',
             merchant_city='Phnom Penh',
-            amount=1.00,
+            amount='15',
             currency='USD',
             store_label='Shop A',
             phone_number='85515605227',

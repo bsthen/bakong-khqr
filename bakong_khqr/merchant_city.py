@@ -9,6 +9,7 @@ class MerchantCity:
         Initialize the MerchantCity class with settings from the EMV configuration.
         """
         self.merchant_city_tag = emv.merchant_city
+        self.max_length = 15  # Maximum length for the merchant city name
 
     def value(self, merchant_city: str) -> str:
         """
@@ -19,14 +20,22 @@ class MerchantCity:
 
         Returns:
         - str: The constructed merchant city value with its length.
+
+        Raises:
+        - ValueError: If `merchant_city` is empty or exceeds the maximum allowed length.
         """
         # Validate the merchant city
         if not merchant_city:
             raise ValueError("Merchant city cannot be empty.")
         
+        # Ensure the merchant city does not exceed the maximum allowed length
+        length_of_merchant_city = len(merchant_city)
+        
+        if length_of_merchant_city > self.max_length:
+            raise ValueError(f"Merchant City cannot exceed {self.max_length} characters. Your input length: {length_of_merchant_city} characters.")
+        
         # Calculate the length of the merchant city
-        length = len(merchant_city)
-        length_str = f'{length:02}'
+        length_str = f'{length_of_merchant_city:02}'
 
         # Construct the result string
         result = f'{self.merchant_city_tag}{length_str}{merchant_city}'

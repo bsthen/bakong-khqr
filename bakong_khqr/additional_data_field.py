@@ -1,14 +1,19 @@
 from .emv import EMV
 
+# Initialize EMV instance
 emv = EMV()
 
 class AdditionalDataField:
     def __init__(self):
+        """
+        Initialize the AdditionalDataField class with settings from the EMV configuration.
+        """
         self.additional_data_tag = emv.addtion_data_tag
         self.store_label_tag = emv.store_label
         self.mobile_number_tag = emv.addition_data_field_mobile_number
         self.bill_number_tag = emv.billnumber_tag
         self.terminal_label_tag = emv.terminal_label
+        self.max_length = 25  # Maximum length for each field
 
     def _format_value(self, tag, value) -> str:
         """
@@ -22,16 +27,31 @@ class AdditionalDataField:
         length_of_value = f'{len(value_str):02}'
         return f'{tag}{length_of_value}{value_str}'
 
+    def _validate_length(self, value: str, field_name: str):
+        """
+        Validate the length of a field value.
+
+        :param value: The value to be validated.
+        :param field_name: The name of the field for error reporting.
+        :raises ValueError: If the value exceeds the maximum allowed length.
+        """
+        if len(value) > self.max_length:
+            raise ValueError(f"{field_name} cannot exceed {self.max_length} characters. Your input length: {len(value)} characters.")
+
     def store_label_value(self, store_label) -> str:
+        self._validate_length(store_label, "Store label")
         return self._format_value(self.store_label_tag, store_label)
     
     def phone_number_value(self, phone_number) -> str:
+        self._validate_length(phone_number, "Phone number")
         return self._format_value(self.mobile_number_tag, phone_number)
     
     def bill_number_value(self, bill_number) -> str:
+        self._validate_length(bill_number, "Bill number")
         return self._format_value(self.bill_number_tag, bill_number)
     
     def terminal_label_value(self, terminal_label) -> str:
+        self._validate_length(terminal_label, "Terminal label")
         return self._format_value(self.terminal_label_tag, terminal_label)
     
     def value(self, store_label, phone_number, bill_number, terminal_label) -> str:
