@@ -42,20 +42,20 @@ class AdditionalDataField:
             raise ValueError(f"{field_name} cannot exceed {max_length} characters. Your input length: {len(value)} characters.")
 
     def store_label_value(self, store_label) -> str:
-        self._validate_length(store_label, "Store label")
-        return self._format_value(self.store_label_tag, self.store_label_length ,store_label)
+        self._validate_length(store_label, self.store_label_length, "Store label")
+        return self._format_value(self.store_label_tag, store_label)
     
     def phone_number_value(self, phone_number) -> str:
-        self._validate_length(phone_number, "Phone number")
-        return self._format_value(self.mobile_number_tag, self.mobile_number_length ,phone_number)
+        self._validate_length(phone_number, self.mobile_number_length, "Phone number")
+        return self._format_value(self.mobile_number_tag, phone_number)
     
     def bill_number_value(self, bill_number) -> str:
-        self._validate_length(bill_number, "Bill number")
-        return self._format_value(self.bill_number_tag, self.bill_number_length, bill_number)
+        self._validate_length(bill_number, self.bill_number_length, "Bill number")
+        return self._format_value(self.bill_number_tag, bill_number)
     
     def terminal_label_value(self, terminal_label) -> str:
-        self._validate_length(terminal_label, "Terminal label")
-        return self._format_value(self.terminal_label_tag, self.terminal_label_length, terminal_label)
+        self._validate_length(terminal_label, self.terminal_label_length, "Terminal label")
+        return self._format_value(self.terminal_label_tag, terminal_label)
     
     def value(self, store_label, phone_number, bill_number, terminal_label) -> str:
         """
