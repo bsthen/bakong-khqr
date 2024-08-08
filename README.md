@@ -1,4 +1,4 @@
-# bakong-khqr
+# bakong-khqr (Unofficial)
 
 A Python library for generating QR codes for transactions compliant with the Bakong KHQR standard.
 
