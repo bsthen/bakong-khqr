@@ -101,7 +101,7 @@ print(is_paid)
 #### Parameters for `get_deeplink()` Method
 
 - `qr`: Valid QR Code data as string that generate from create_qr() method.
-- `callback`: Deeplink url for opening your app after payment is completed.
+- `callback`: Deeplink URL for opening your app after payment is completed.
 - `appIconUrl`: Your App Icon URL.
 - `appName`: Your App Name.
 
@@ -113,13 +113,13 @@ print(is_paid)
 
 - `md5`: Valid hash md5 from md5() method of the correct transaction.
 
-## Bakong Official Documentation
+## Bakong Official
 
 KHQR SDK Documentation: [https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf](https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf)
 
-Development Official API: [https://sit-api-bakong.nbc.gov.kh/](https://sit-api-bakong.nbc.gov.kh/)
+Development API: [https://sit-api-bakong.nbc.gov.kh/](https://sit-api-bakong.nbc.gov.kh/)
 
-Production Official API: [https://api-bakong.nbc.gov.kh/](https://sit-api-bakong.nbc.gov.kh/)
+Production API: [https://api-bakong.nbc.gov.kh/](https://api-bakong.nbc.gov.kh/)
 
 ## License
 
