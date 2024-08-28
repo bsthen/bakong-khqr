@@ -7,7 +7,7 @@ long_description = readme.read_text()
 
 setup(
     name="bakong-khqr",
-    version="0.1.5",
+    version="0.2.0",
     author="BAN Sothen",
     author_email="bansokthen@gmail.com",
     description="A Python library for generating QR codes for transactions compliant with the Bakong KHQR standard. (Unofficial NBC Library)",
