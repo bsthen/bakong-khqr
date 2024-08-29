@@ -20,6 +20,7 @@ class Amount:
         try:
             # Convert amount to float for formatting
             amount_float = float(amount)
+            
         except ValueError:
             raise ValueError(f"Invalid amount value: {amount}. Amount must be a number or a string representing a number.")
         
@@ -41,5 +42,4 @@ class Amount:
         # Calculate length of the formatted amount string
         length_of_amount = str(len(padded_amount_str)).zfill(2)  # Length in 2 digits
         
-        result = f"{self.transaction_amount}{length_of_amount}{padded_amount_str}"
-        return result
+        return f"{self.transaction_amount}{length_of_amount}{padded_amount_str}"

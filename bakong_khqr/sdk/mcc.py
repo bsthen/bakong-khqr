@@ -22,7 +22,7 @@ class MCC:
         - str: The constructed merchant category code value with its length.
         """
         # Use the default category code if none is provided
-        if category_code is None:
+        if not category_code:
             category_code = self.default_merchant_category_code
         
         # Validate the category code
@@ -33,5 +33,4 @@ class MCC:
         length_str = f'{len(category_code):02}'
 
         # Construct the result string
-        result = f'{self.merchant_category_code_tag}{length_str}{category_code}'
-        return result
+        return f'{self.merchant_category_code_tag}{length_str}{category_code}'

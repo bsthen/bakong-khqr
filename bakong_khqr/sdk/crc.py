@@ -46,5 +46,4 @@ class CRC:
         """
         crc16_hex = self.crc16_hex(data + self.default_crc_tag)
         length_of_crc = f'{len(crc16_hex):02}'
-        result = f'{self.crc}{length_of_crc}{crc16_hex}'
-        return result
+        return f'{self.crc}{length_of_crc}{crc16_hex}'

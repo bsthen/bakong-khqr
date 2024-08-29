@@ -36,5 +36,4 @@ class MerchantName:
         length_str = f'{length:02}'
 
         # Construct the result string
-        result = f'{self.merchant_name_tag}{length_str}{merchant_name}'
-        return result
+        return f'{self.merchant_name_tag}{length_str}{merchant_name}'

@@ -27,13 +27,13 @@ class TransactionCurrency:
 
         if currency == "USD":
             currency_value = self.currency_usd
+            
         elif currency == "KHR":
             currency_value = self.currency_khr
+            
         else:
             raise ValueError(f"Invalid currency code '{currency}'. Supported codes are 'USD' and 'KHR'.")
 
         # Format the length of the currency value
         length_of_currency = str(len(currency_value)).zfill(2)
-        result = f"{self.transaction_currency}{length_of_currency}{currency_value}"
-        
-        return result
+        return f"{self.transaction_currency}{length_of_currency}{currency_value}"

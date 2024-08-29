@@ -38,5 +38,4 @@ class MerchantCity:
         length_str = f'{length_of_merchant_city:02}'
 
         # Construct the result string
-        result = f'{self.merchant_city_tag}{length_str}{merchant_city}'
-        return result
+        return f'{self.merchant_city_tag}{length_str}{merchant_city}'

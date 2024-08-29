@@ -44,5 +44,4 @@ class GlobalUniqueIdentifier:
         length_result = f"{len(result):02}"
         
         # Final result
-        result = f"{self.merchant_account_information_individual}{length_result}{result}"
-        return result
+        return f"{self.merchant_account_information_individual}{length_result}{result}"

@@ -32,6 +32,4 @@ class TimeStamp:
         length_result = str(len(result)).zfill(2)
 
         # Append the timestamp tag and formatted result
-        result = f"{self.timestamp_tag}{length_result}{result}"
-
-        return result
+        return f"{self.timestamp_tag}{length_result}{result}"

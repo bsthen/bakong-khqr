@@ -15,7 +15,7 @@ class CountryCode:
         :return: Formatted string including country code and its length.
         """
         # Use the default if no country code is provided
-        if country_code is None:
+        if not country_code:
             country_code = self.default_country_code
         
         # Calculate the length of the country code

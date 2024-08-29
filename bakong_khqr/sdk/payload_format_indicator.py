@@ -23,5 +23,4 @@ class PayloadFormatIndicator:
         length_str = f'{length:02}'
 
         # Construct the result string
-        result = f'{self.payload_format_indicator}{length_str}{self.default_payload_format_indicator}'
-        return result
+        return f'{self.payload_format_indicator}{length_str}{self.default_payload_format_indicator}'
