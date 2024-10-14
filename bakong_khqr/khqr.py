@@ -140,9 +140,11 @@ class KHQR:
         }
         
         response = requests.post(self.bakong_api + "/check_transaction_by_md5", json=payload, headers=headers).json()
-        
+        print(response)
         if response["responseCode"] == 0:
             return "PAID"
+        if response["responseCode"] == 1 and response["errorCode"] == 6:
+            raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",)
         return "UNPAID"
     
     def check_bulk_payments(
@@ -169,4 +171,8 @@ class KHQR:
                 if data["status"] == "SUCCESS":
                     paid_list.append(data["md5"])
             return paid_list
+        
+        if response["responseCode"] == 1 and response["errorCode"] == 6:
+            raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",)
+        
         return []
