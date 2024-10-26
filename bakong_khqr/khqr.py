@@ -15,7 +15,7 @@ from .sdk.payload_format_indicator import PayloadFormatIndicator
 from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 
 class KHQR:
-    def __init__(self, bakong_token: str):
+    def __init__(self, bakong_token: str = None):
         self.crc = CRC()
         self.mcc = MCC()
         self.hash = HASH()
@@ -88,6 +88,11 @@ class KHQR:
         :param appName: Name of your app or website (default: MyAppName).
         :return: Deep link URL as a string.
         """
+        
+        if not self.bakong_token:
+            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+
+        
         payload = {
             "qr": qr,
             "sourceInfo": {
@@ -131,6 +136,10 @@ class KHQR:
         :param md5: MD5 hash of the QR code generated from generate_md5() method.
         :return: Transaction status as a string (PAID or UNPAID).
         """
+        
+        if not self.bakong_token:
+            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+        
         payload = {
             "md5": md5
         }
@@ -148,7 +157,7 @@ class KHQR:
         return "UNPAID"
     
     def check_bulk_payments(
-        self, 
+        self,
         md5_list: list
         ) -> list:
         """
@@ -157,6 +166,9 @@ class KHQR:
         :param md5_list: List of MD5 hashes generated from generate_md5() method.
         :return: md5 list of paid transactions.
         """
+        if not self.bakong_token:
+            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+        
         headers = {
             "Authorization": f"Bearer {self.bakong_token}",
             "Content-Type": "application/json"

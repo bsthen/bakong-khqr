@@ -51,7 +51,6 @@ class TestKHQR(unittest.TestCase):
             "495fdaec0be5d94c89bc1283c7283d3d",
             "31bca02094ad576588e42b60db57bc98"
         ]
-
         bulk_payments_status = self.khqr.check_bulk_payments(md5_list)
         
         # print the result

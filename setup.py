@@ -7,7 +7,7 @@ long_description = readme.read_text()
 
 setup(
     name="bakong-khqr",
-    version="0.2.3",
+    version="0.2.4",
     author="BAN Sothen",
     author_email="bansokthen@gmail.com",
     description="A Python library for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC Library)",
