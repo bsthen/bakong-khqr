@@ -17,7 +17,7 @@ class EMV:
         # Payload and Point of Initiation
         self.payload_format_indicator = "00"
         self.default_payload_format_indicator = "01"
-        self.point_of_initiation_method = "01"  # Static (11) or Dynamic (12)
+        self.point_of_initiation_method = "01"
         
         # Merchant Information
         self.merchant_name = "59"

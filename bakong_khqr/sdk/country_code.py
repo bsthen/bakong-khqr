@@ -22,5 +22,4 @@ class CountryCode:
         length_of_country_code = f'{len(country_code):02}'
 
         # Construct the result
-        result = f'{self.country_code_tag}{length_of_country_code}{country_code}'
-        return result
+        return f'{self.country_code_tag}{length_of_country_code}{country_code}'
