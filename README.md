@@ -13,6 +13,12 @@ A Python library for generating payment transactions compliant with the Bakong K
 pip3 install bakong-khqr
 ```
 
+or Update Last Version
+
+```bash
+pip3 install --upgrade bakong-khqr
+```
+
 ## Usage
 
 The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment transaction for Bakong KHQR.
