@@ -42,7 +42,8 @@ class KHQR:
         store_label: str,
         phone_number: str,
         bill_number: str,
-        terminal_label: str
+        terminal_label: str,
+        static: bool = False,
     ) -> str:
         """
         Create a QR code string based on provided information.
@@ -56,10 +57,11 @@ class KHQR:
         :param phone_number: Mobile number of the merchant (e.g., 85512345678).
         :param bill_number: Bill number or transaction reference (e.g., TRX019283775).
         :param terminal_label: Terminal label or transaction description (e.g., Buy Course).
+        :param static: Static or Dynamic QR code (default: False).
         :return: Generated QR code as a string.
         """
         qr_data = self.payload_format_indicator.value()
-        qr_data += self.point_of_initiation.dynamic()
+        qr_data += self.point_of_initiation.static() if static else self.point_of_initiation.dynamic()
         qr_data += self.global_unique_identifier.value(bank_account)
         qr_data += self.mcc.value()
         qr_data += self.country_code.value()

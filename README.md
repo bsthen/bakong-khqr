@@ -1,6 +1,6 @@
 # bakong-khqr (Unofficial)
 
-A Python library for generating payment transactions compliant with the Bakong KHQR standard.
+A Python package for generating payment transactions compliant with the Bakong KHQR standard.
 
 ## Requirement
 
@@ -22,6 +22,8 @@ pip3 install --upgrade bakong-khqr
 ## Usage
 
 The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment transaction for Bakong KHQR.
+
+[![Video Toturials](https://img.youtube.com/vi/qGjQZ6V393c/0.jpg)](https://www.youtube.com/watch?v=qGjQZ6V393c)
 
 ### Importing the Library
 
@@ -59,7 +61,8 @@ qr = khqr.create_qr(
     store_label='MShop',
     phone_number='85512345678',
     bill_number='TRX019283775',
-    terminal_label='Buy 1A_Level_Book'
+    terminal_label='Cashier-01',
+    static=False # Static or Dynamic QR code (default: False)
 )
 print(qr)
 # String Result: 00020101021229180014your_name@wing520459995802KH5909Your Name6010Phnom Penh991700131724927295157541100000009800530311662610112TRX0192837750211855123456780305MShop0717Buy 1A_Level_Book63041087
@@ -112,6 +115,7 @@ print(bulk_payments_status)
 - `phone_number`: Contact phone number.
 - `bill_number`: Reference number for the bill.
 - `terminal_label`: Label for the terminal.
+- `static`: Static or Dynamic QR code (default: static = False).
 
 #### Parameters for `generate_deeplink()` Method
 

@@ -26,7 +26,8 @@ class TestKHQR(unittest.TestCase):
             store_label='MShop',
             phone_number='85512345678',
             bill_number='TRX019283775',
-            terminal_label='Buy 1A_Level_Book'
+            terminal_label='Cashier-01',
+            static=True # Static or Dynamic QR code (default: False)
         )
         
         # Get Deeplink
