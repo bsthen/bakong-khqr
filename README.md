@@ -23,7 +23,7 @@ pip3 install --upgrade bakong-khqr
 
 The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment transaction for Bakong KHQR.
 
-<div style="text-align: center">[![Video Tutorials](https://img.youtube.com/vi/qGjQZ6V393c/0.jpg)](https://www.youtube.com/watch?v=qGjQZ6V393c)</div>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/qGjQZ6V393c" frameborder="0" allowfullscreen></iframe>
 
 ### Importing the Library
 
