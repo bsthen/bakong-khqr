@@ -117,6 +117,8 @@ print(bulk_payments_status)
 - `terminal_label`: Label for the terminal.
 - `static`: Static or Dynamic QR code (default: static = False).
 
+`Note`: Using static mode will create a Static QR Code for payment, allowing unlimited transactions, usage, and a zero amount included.
+
 #### Parameters for `generate_deeplink()` Method
 
 - `qr`: Valid QR Code data as string that generate from create_qr() method.

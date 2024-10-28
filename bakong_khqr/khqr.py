@@ -68,7 +68,8 @@ class KHQR:
         qr_data += self.merchant_name.value(merchant_name)
         qr_data += self.merchant_city.value(merchant_city)
         qr_data += self.timestamp.value()
-        qr_data += self.amount.value(amount)
+        if not static:
+            qr_data += self.amount.value(amount)
         qr_data += self.transaction_currency.value(currency)
         qr_data += self.additional_data_field.value(store_label, phone_number, bill_number, terminal_label)
         qr_data += self.crc.value(qr_data)
