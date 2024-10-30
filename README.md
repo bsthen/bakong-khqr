@@ -2,9 +2,15 @@
 
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
 
+## Download Mobile App
+
+- Bakong App ( [App Store](https://apps.apple.com/kh/app/bakong/id1440829141) | [Play Store](https://play.google.com/store/apps/details?id=jp.co.soramitsu.bakong) )
+- Bakong Tourists ( [App Store](https://apps.apple.com/kh/app/bakong-tourists/id6471774666) | [Play Store](https://play.google.com/store/apps/details?id=kh.gov.nbc.bakong.tourist) )
+
 ## Requirement
 
 - Python3
+- Bakong Account
 - Bakong Developer Token [https://api-bakong.nbc.gov.kh/register](https://api-bakong.nbc.gov.kh/register)
 
 ## Installation
