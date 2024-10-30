@@ -10,7 +10,7 @@ A Python package for generating payment transactions compliant with the Bakong K
 ## Requirement
 
 - Python3
-- Bakong Account
+- Bakong Account (Full KYC)
 - Bakong Developer Token [https://api-bakong.nbc.gov.kh/register](https://api-bakong.nbc.gov.kh/register)
 
 ## Installation
