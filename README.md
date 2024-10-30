@@ -146,7 +146,12 @@ print(bulk_payments_status)
 
 ## Bakong Official
 
-KHQR SDK Documentation: [https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf](https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf)
+KHQR SDK Documentation:
+
+- [https://api-bakong.nbc.gov.kh/document](https://api-bakong.nbc.gov.kh/document)
+- [KHQR Content Guideline v1.4.pdf](https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20Content%20Guideline%20v.1.3.pdf)
+- [QR Payment Integration.pdf](https://bakong.nbc.gov.kh/download/KHQR/integration/QR%20Payment%20Integration.pdf)
+- [KHQR SDK Document.pdf](https://bakong.nbc.gov.kh/download/KHQR/integration/KHQR%20SDK%20Document.pdf)
 
 Development API: [https://sit-api-bakong.nbc.gov.kh/](https://sit-api-bakong.nbc.gov.kh/)
 
