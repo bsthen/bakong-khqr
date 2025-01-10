@@ -1,13 +1,10 @@
 # bakong-khqr (Unofficial)
 
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
-
-[![Build Status](https://img.shields.io/github/workflow/status/bsthen/bakong-khqr/CI)](https://github.com/bsthen/bakong-khqr/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://badge.fury.io/py/bakong-khqr.svg)](https://pypi.org/project/bakong-khqr/)
+[![PyPI version](https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package)](https://pypi.org/project/bakong-khqr/)
 [![Python](https://img.shields.io/pypi/pyversions/bakong-khqr.svg)](https://pypi.org/project/bakong-khqr/)
 [![PyPI Downloads](https://static.pepy.tech/badge/bakong-khqr)](https://pepy.tech/projects/bakong-khqr)
-[![GitHub issues](https://img.shields.io/github/issues/bsthen/bakong-khqr.svg)](https://github.com/bsthen/bakong-khqr/issues)
 
 ## Download Mobile App
 
