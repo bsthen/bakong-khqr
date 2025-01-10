@@ -8,8 +8,8 @@ class MCC:
         """
         Initialize the MCC class with settings from the EMV configuration.
         """
-        self.merchant_category_code_tag = emv.merchant_category_code
-        self.default_merchant_category_code = emv.default_merchant_category_code
+        self.__merchant_category_code_tag = emv.merchant_category_code
+        self.__default_merchant_category_code = emv.default_merchant_category_code
 
     def value(self, category_code: str = None) -> str:
         """
@@ -23,7 +23,7 @@ class MCC:
         """
         # Use the default category code if none is provided
         if not category_code:
-            category_code = self.default_merchant_category_code
+            category_code = self.__default_merchant_category_code
         
         # Validate the category code
         if not category_code.isdigit() or len(category_code) < 4:
@@ -33,4 +33,4 @@ class MCC:
         length_str = f'{len(category_code):02}'
 
         # Construct the result string
-        return f'{self.merchant_category_code_tag}{length_str}{category_code}'
+        return f'{self.__merchant_category_code_tag}{length_str}{category_code}'

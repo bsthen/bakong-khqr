@@ -4,10 +4,10 @@ emv = EMV()
 
 class CRC:
     def __init__(self):
-        self.crc = emv.crc
-        self.default_crc_tag = emv.default_crc_tag
+        self.__crc = emv.crc
+        self.__default_crc_tag = emv.default_crc_tag
         
-    def calculate_crc16(self, data: str) -> int:
+    def __calculate_crc16(self, data: str) -> int:
         """
         Calculate CRC-16 using the CRC-CCITT polynomial.
         
@@ -27,14 +27,14 @@ class CRC:
                 crc &= 0xFFFF  # Ensure it stays 16-bit
         return crc
 
-    def crc16_hex(self, data: str) -> str:
+    def __crc16_hex(self, data: str) -> str:
         """
         Get the CRC-16 value in hexadecimal format.
         
         :param data: Input data as a string
         :return: CRC-16 value as a hexadecimal string
         """
-        crc16_result = self.calculate_crc16(data)
+        crc16_result = self.__calculate_crc16(data)
         return format(crc16_result, '04X')
     
     def value(self, data: str) -> str:
@@ -44,6 +44,6 @@ class CRC:
         :param data: Input data as a string
         :return: Formatted string including CRC tag and CRC value
         """
-        crc16_hex = self.crc16_hex(data + self.default_crc_tag)
+        crc16_hex = self.__crc16_hex(data + self.__default_crc_tag)
         length_of_crc = f'{len(crc16_hex):02}'
-        return f'{self.crc}{length_of_crc}{crc16_hex}'
+        return f'{self.__crc}{length_of_crc}{crc16_hex}'

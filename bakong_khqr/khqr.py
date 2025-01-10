@@ -1,4 +1,5 @@
 import requests
+from typing import Optional
 
 from .sdk.crc import CRC
 from .sdk.mcc import MCC
@@ -16,21 +17,26 @@ from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 
 class KHQR:
     def __init__(self, bakong_token: str = None):
-        self.crc = CRC()
-        self.mcc = MCC()
-        self.hash = HASH()
-        self.amount = Amount()
-        self.timestamp = TimeStamp()
-        self.country_code = CountryCode()
-        self.merchant_city = MerchantCity()
-        self.merchant_name = MerchantName()
-        self.point_of_initiation = PointOfInitiation()
-        self.transaction_currency = TransactionCurrency()
-        self.additional_data_field = AdditionalDataField()
-        self.payload_format_indicator = PayloadFormatIndicator()
-        self.global_unique_identifier = GlobalUniqueIdentifier()
-        self.bakong_token = bakong_token
-        self.bakong_api = "https://api-bakong.nbc.gov.kh/v1"
+        self.__crc = CRC()
+        self.__mcc = MCC()
+        self.__hash = HASH()
+        self.__amount = Amount()
+        self.__timestamp = TimeStamp()
+        self.__country_code = CountryCode()
+        self.__merchant_city = MerchantCity()
+        self.__merchant_name = MerchantName()
+        self.__point_of_initiation = PointOfInitiation()
+        self.__transaction_currency = TransactionCurrency()
+        self.__additional_data_field = AdditionalDataField()
+        self.__payload_format_indicator = PayloadFormatIndicator()
+        self.__global_unique_identifier = GlobalUniqueIdentifier()
+        self.__bakong_token = bakong_token
+        self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
+        
+    def __check_bakong_token(self):
+        if not self.__bakong_token:
+            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+
     
     def create_qr(
         self,
@@ -43,7 +49,7 @@ class KHQR:
         phone_number: str,
         bill_number: str,
         terminal_label: str,
-        static: bool = False,
+        static: Optional[bool] = False,
     ) -> str:
         """
         Create a QR code string based on provided information.
@@ -60,19 +66,19 @@ class KHQR:
         :param static: Static or Dynamic QR code (default: False).
         :return: Generated QR code as a string.
         """
-        qr_data = self.payload_format_indicator.value()
-        qr_data += self.point_of_initiation.static() if static else self.point_of_initiation.dynamic()
-        qr_data += self.global_unique_identifier.value(bank_account)
-        qr_data += self.mcc.value()
-        qr_data += self.country_code.value()
-        qr_data += self.merchant_name.value(merchant_name)
-        qr_data += self.merchant_city.value(merchant_city)
-        qr_data += self.timestamp.value()
+        qr_data = self.__payload_format_indicator.value()
+        qr_data += self.__point_of_initiation.static() if static else self.__point_of_initiation.dynamic()
+        qr_data += self.__global_unique_identifier.value(bank_account)
+        qr_data += self.__mcc.value()
+        qr_data += self.__country_code.value()
+        qr_data += self.__merchant_name.value(merchant_name)
+        qr_data += self.__merchant_city.value(merchant_city)
+        qr_data += self.__timestamp.value()
         if not static:
-            qr_data += self.amount.value(amount)
-        qr_data += self.transaction_currency.value(currency)
-        qr_data += self.additional_data_field.value(store_label, phone_number, bill_number, terminal_label)
-        qr_data += self.crc.value(qr_data)
+            qr_data += self.__amount.value(amount)
+        qr_data += self.__transaction_currency.value(currency)
+        qr_data += self.__additional_data_field.value(store_label, phone_number, bill_number, terminal_label)
+        qr_data += self.__crc.value(qr_data)
         return qr_data
 
     def generate_deeplink(
@@ -91,10 +97,8 @@ class KHQR:
         :param appName: Name of your app or website (default: MyAppName).
         :return: Deep link URL as a string.
         """
-        
-        if not self.bakong_token:
-            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
 
+        self.__check_bakong_token() # Check if Bakong Developer Token is provided
         
         payload = {
             "qr": qr,
@@ -105,17 +109,22 @@ class KHQR:
             }
         }
         headers = {
-            "Authorization": f"Bearer {self.bakong_token}",
+            "Authorization": f"Bearer {self.__bakong_token}",
             "Content-Type": "application/json"
         }
         
-        response = requests.post(self.bakong_api + "/generate_deeplink_by_qr", json=payload, headers=headers).json()
+        try:
         
-        if response["responseCode"] == 0:
-            return response["data"]["shortLink"]
-        
-        if response["responseCode"] == 1:
-            raise ValueError("Error: ", response["status"]["message"])
+            response = requests.post(self.__bakong_api + "/generate_deeplink_by_qr", json=payload, headers=headers).json()
+            
+            if response["responseCode"] == 0:
+                return response["data"]["shortLink"]
+            
+            if response["responseCode"] == 1:
+                raise ValueError("Error: ", response["status"]["message"])
+            
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"An error occurred: {e}")
         
     def generate_md5(
         self, 
@@ -127,7 +136,7 @@ class KHQR:
         :param qr: QR code string generated from create_qr() method.
         :return: MD5 hash as a string (32 characters).
         """
-        return self.hash.md5(qr)
+        return self.__hash.md5(qr)
     
     def check_payment(
         self, 
@@ -140,56 +149,65 @@ class KHQR:
         :return: Transaction status as a string (PAID or UNPAID).
         """
         
-        if not self.bakong_token:
-            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+        self.__check_bakong_token() # Check if Bakong Developer Token is provided
         
         payload = {
             "md5": md5
         }
         headers = {
-            "Authorization": f"Bearer {self.bakong_token}",
+            "Authorization": f"Bearer {self.__bakong_token}",
             "Content-Type": "application/json"
         }
         
-        response = requests.post(self.bakong_api + "/check_transaction_by_md5", json=payload, headers=headers).json()
+        try:
         
-        if response["responseCode"] == 0:
-            return "PAID"
-        
-        if response["responseCode"] == 1 and response["errorCode"] == 6:
-            raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",)
-        
-        return "UNPAID"
+            response = requests.post(self.__bakong_api + "/check_transaction_by_md5", json=payload, headers=headers).json()
+            
+            if response["responseCode"] == 0:
+                return "PAID"
+            
+            if response["responseCode"] == 1 and response["errorCode"] == 6:
+                raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",)
+            
+            return "UNPAID"
+
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"An error occurred: {e}")
     
     def check_bulk_payments(
         self,
-        md5_list: list
-        ) -> list:
+        md5_list: list[str]
+        ) -> list[str]:
         """
         Check the transaction status based on the list of MD5 hashes.
 
         :param md5_list: List of MD5 hashes generated from generate_md5() method.
         :return: md5 list of paid transactions.
         """
-        if not self.bakong_token:
-            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+        
+        self.__check_bakong_token()
         
         headers = {
-            "Authorization": f"Bearer {self.bakong_token}",
+            "Authorization": f"Bearer {self.__bakong_token}",
             "Content-Type": "application/json"
         }
         
-        response = requests.post(self.bakong_api + "/check_transaction_by_md5_list", json=md5_list, headers=headers).json()
+        try:
         
-        if response["responseCode"] == 0:
-            # if md5 is SUCCESS, then append md5 to paid_list
-            paid_list = []
-            for data in response["data"]:
-                if data["status"] == "SUCCESS":
-                    paid_list.append(data["md5"])
-            return paid_list
+            response = requests.post(self.__bakong_api + "/check_transaction_by_md5_list", json=md5_list, headers=headers).json()
+            
+            if response["responseCode"] == 0:
+                # if md5 is SUCCESS, then append md5 to paid_list
+                paid_list = []
+                for data in response["data"]:
+                    if data["status"] == "SUCCESS":
+                        paid_list.append(data["md5"])
+                return paid_list
+            
+            if response["responseCode"] == 1 and response["errorCode"] == 6:
+                raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+            
+            return []
         
-        if response["responseCode"] == 1 and response["errorCode"] == 6:
-            raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",)
-        
-        return []
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"An error occurred: {e}")

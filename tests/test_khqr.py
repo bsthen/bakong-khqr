@@ -7,12 +7,12 @@ load_dotenv()
 
 class TestKHQR(unittest.TestCase):
     def setUp(self):
-        self.bakong_token = os.getenv("BAKONG_TOKEN")
-        if not self.bakong_token:
+        self.__bakong_token = os.getenv("BAKONG_TOKEN")
+        if not self.__bakong_token:
             raise ValueError("BAKONG_TOKEN is not set in the environment variables.")
         
         # Initialize KHQR with Bakong Token
-        self.khqr = KHQR(self.bakong_token)
+        self.khqr = KHQR(self.__bakong_token)
 
     def test_create_qr(self):
         

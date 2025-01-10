@@ -9,8 +9,8 @@ class TimeStamp:
         """
         Initialize the TimeStamp class with parameters from the EMV configuration.
         """
-        self.language_preference = emv.language_perference
-        self.timestamp_tag = emv.timestamp_tag
+        self.__language_preference = emv.language_perference
+        self.__timestamp_tag = emv.timestamp_tag
 
     def value(self) -> str:
         """
@@ -26,10 +26,10 @@ class TimeStamp:
         length_of_timestamp = str(len(timestamp)).zfill(2)
 
         # Create the initial result with language preference and timestamp
-        result = f"{self.language_preference}{length_of_timestamp}{timestamp}"
+        result = f"{self.__language_preference}{length_of_timestamp}{timestamp}"
 
         # Format the length of the result
         length_result = str(len(result)).zfill(2)
 
         # Append the timestamp tag and formatted result
-        return f"{self.timestamp_tag}{length_result}{result}"
+        return f"{self.__timestamp_tag}{length_result}{result}"

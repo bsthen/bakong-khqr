@@ -4,8 +4,8 @@ emv = EMV()
 
 class Amount:
     def __init__(self):
-        self.transaction_amount = emv.transaction_amount
-        self.max_length = emv.invalid_length_amount
+        self.__transaction_amount = emv.transaction_amount
+        self.__max_length = emv.invalid_length_amount
         
     def value(self, amount: float) -> str:
         """
@@ -33,8 +33,8 @@ class Amount:
         # Ensure length of formatted amount is always 13 characters
         length_of_amount = len(amount_str) + 2  # Adding 2 for the transaction amount tag and length of amount
         
-        if length_of_amount > self.max_length:
-            raise ValueError(f"Formatted Amount exceeds maximum length of {self.max_length} characters. Your input length: {length_of_amount} characters.")
+        if length_of_amount > self.__max_length:
+            raise ValueError(f"Formatted Amount exceeds maximum length of {self.__max_length} characters. Your input length: {length_of_amount} characters.")
         
         # Pad amount_str with leading zeros to ensure it fits the required length
         padded_amount_str = amount_str.zfill(11)  # Ensures the total length (including tag and length) is 13
@@ -42,4 +42,4 @@ class Amount:
         # Calculate length of the formatted amount string
         length_of_amount = str(len(padded_amount_str)).zfill(2)  # Length in 2 digits
         
-        return f"{self.transaction_amount}{length_of_amount}{padded_amount_str}"
+        return f"{self.__transaction_amount}{length_of_amount}{padded_amount_str}"

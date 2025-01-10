@@ -7,9 +7,9 @@ class GlobalUniqueIdentifier:
         """
         Initialize the GlobalUniqueIdentifier class with settings from the EMV configuration.
         """
-        self.payload_format_indicator = emv.payload_format_indicator
-        self.merchant_account_information_individual = emv.merchant_account_information_individual
-        self.max_length = emv.invalid_length_bakong_account
+        self.__payload_format_indicator = emv.payload_format_indicator
+        self.__merchant_account_information_individual = emv.merchant_account_information_individual
+        self.__max_length = emv.invalid_length_bakong_account
 
     def value(self, bank_account: str) -> str:
         """
@@ -31,17 +31,17 @@ class GlobalUniqueIdentifier:
         # Ensure the bank account does not exceed the maximum allowed length
         length_of_bank_account = len(bank_account)
         
-        if length_of_bank_account > self.max_length:
-            raise ValueError(f"Bank account cannot exceed {self.max_length} characters. Your input length: {length_of_bank_account} characters.")
+        if length_of_bank_account > self.__max_length:
+            raise ValueError(f"Bank account cannot exceed {self.__max_length} characters. Your input length: {length_of_bank_account} characters.")
         
         # Calculate the length of the bank account number
         length_of_bank_account = f"{length_of_bank_account:02}"
         
         # Generate the result string
-        result = f"{self.payload_format_indicator}{length_of_bank_account}{bank_account}"
+        result = f"{self.__payload_format_indicator}{length_of_bank_account}{bank_account}"
         
         # Calculate the length of the result
         length_result = f"{len(result):02}"
         
         # Final result
-        return f"{self.merchant_account_information_individual}{length_result}{result}"
+        return f"{self.__merchant_account_information_individual}{length_result}{result}"

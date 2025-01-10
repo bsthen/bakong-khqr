@@ -8,8 +8,8 @@ class PointOfInitiation:
         """
         Initialize the PointOfInitiation class with dynamic and static QR code settings from the EMV configuration.
         """
-        self.dynamic_qr = emv.default_dynamic_qr
-        self.static_qr = emv.default_static_qr
+        self.__dynamic_qr = emv.default_dynamic_qr
+        self.__static_qr = emv.default_static_qr
 
     def dynamic(self) -> str:
         """
@@ -18,7 +18,7 @@ class PointOfInitiation:
         Returns:
         - str: The dynamic QR code setting.
         """
-        return self.dynamic_qr
+        return self.__dynamic_qr
     
     def static(self) -> str:
         """
@@ -27,4 +27,4 @@ class PointOfInitiation:
         Returns:
         - str: The static QR code setting.
         """
-        return self.static_qr
+        return self.__static_qr
