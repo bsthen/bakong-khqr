@@ -10,7 +10,7 @@ setup(
     version="0.2.9",
     author="BAN Sothen",
     author_email="bansokthen@gmail.com",
-    description="A Python package for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC Library)",
+    description="A Python package for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC package)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/bsthen/bakong-khqr",
