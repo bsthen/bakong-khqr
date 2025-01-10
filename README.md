@@ -1,4 +1,4 @@
-<h1 align="center"> bakong-khqr (Unofficial) </h1>
+<h1 align="center"> Bakong-KHQR (Unofficial) </h1>
 
 <p align="center">
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
