@@ -1,6 +1,12 @@
 <h1 align="center"> Bakong-KHQR (Unofficial) </h1>
 
 <p align="center">
+<a href="https://www.youtube.com/watch?v=qGjQZ6V393c" target="_blank" >
+        <img src="https://img.youtube.com/vi/qGjQZ6V393c/0.jpg" alt="YouTube">
+    </a>
+</p>
+
+<p align="center">
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
 </p>
 
@@ -44,15 +50,7 @@ pip3 install --upgrade bakong-khqr
 
 ## Usage
 
-<p align="center">
-<a href="https://www.youtube.com/watch?v=qGjQZ6V393c" target="_blank" >
-        <img src="https://img.youtube.com/vi/qGjQZ6V393c/0.jpg" alt="YouTube">
-    </a>
-</p>
-
-<p align="center">
 The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment transaction for Bakong KHQR.
-</p>
 
 ### Importing the Library
 
