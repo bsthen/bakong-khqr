@@ -4,10 +4,20 @@
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
 </p>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![PyPI version](https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package)](https://pypi.org/project/bakong-khqr/)
-[![Python](https://img.shields.io/pypi/pyversions/bakong-khqr.svg)](https://pypi.org/project/bakong-khqr/)
-[![PyPI Downloads](https://static.pepy.tech/badge/bakong-khqr)](https://pepy.tech/projects/bakong-khqr)
+<p align="center">
+    <a href="https://opensource.org/licenses/MIT" target="_blank" >
+        <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+    </a>
+    <a href="https://pypi.org/project/bakong-khqr/" target="_blank" >
+        <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
+    </a>
+    <a href="https://pypi.org/project/bakong-khqr/" target="_blank" >
+        <img src="https://img.shields.io/pypi/pyversions/bakong-khqr.svg" alt="Python Version">
+    </a>
+    <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
+        <img src="https://static.pepy.tech/badge/bakong-khqr" alt="Downloads">
+</a>
+</p>
 
 ## Download Mobile App
 
