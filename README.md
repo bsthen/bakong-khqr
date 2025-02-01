@@ -80,19 +80,19 @@ khqr = KHQR("eyJhbGciOiJIUzI1NiIsI...nMhgG87BWeDg9Lu-_CKe1SMqC0")
 
 # Generate QR code data for a transaction
 qr = khqr.create_qr(
-    bank_account='your_name@wing', # Check your address under Bakong profile (Mobile App)
+    bank_account='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
     merchant_name='Your Name',
     merchant_city='Phnom Penh',
     amount=9800, #9800 Riel
     currency='KHR', # USD or KHR
     store_label='MShop',
     phone_number='85512345678',
-    bill_number='TRX019283775',
+    bill_number='TRX01234567',
     terminal_label='Cashier-01',
     static=False # Static or Dynamic QR code (default: False)
 )
 print(qr)
-# String Result: 00020101021229180014your_name@wing520459995802KH5909Your Name6010Phnom Penh991700131724927295157541100000009800530311662610112TRX0192837750211855123456780305MShop0717Buy 1A_Level_Book63041087
+# String Result: 00020101021229180014user_name@bank520459995802KH5909Your Name6010Phnom Penh991700131724927295157541100000009800530311662610112TRX0192837750211855123456780305MShop0717Buy 1A_Level_Book63041087
 
 # Generate Deeplink
 deeplink = khqr.generate_deeplink(

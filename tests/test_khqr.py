@@ -18,14 +18,14 @@ class TestKHQR(unittest.TestCase):
         
         # Create a QR code string
         qr = self.khqr.create_qr(
-            bank_account='your_name@wing', # Check your address under Bakong profile (Mobile App)
+            bank_account='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
             merchant_name='Your Name',
             merchant_city='Phnom Penh',
             amount=9800, #9800 Riel
             currency='KHR', # USD or KHR
             store_label='MShop',
             phone_number='85512345678',
-            bill_number='TRX019283775',
+            bill_number='TRX01234567',
             terminal_label='Cashier-01',
             static=True # Static or Dynamic QR code (default: False)
         )
