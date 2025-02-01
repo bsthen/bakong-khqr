@@ -7,10 +7,10 @@ long_description = readme.read_text(encoding="utf-8")
 
 setup(
     name="bakong-khqr",
-    version="0.3.0",
+    version="0.3.1",
     author="BAN Sothen",
     author_email="bansokthen@gmail.com",
-    description="A Python package for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC package)",
+    description="A Python package for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/bsthen/bakong-khqr",

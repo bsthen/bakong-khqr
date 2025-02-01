@@ -115,13 +115,25 @@ class KHQR:
         
         try:
         
-            response = requests.post(self.__bakong_api + "/generate_deeplink_by_qr", json=payload, headers=headers).json()
+            response = requests.post(self.__bakong_api + "/generate_deeplink_by_qr", json=payload, headers=headers)
             
-            if response["responseCode"] == 0:
-                return response["data"]["shortLink"]
+            if response.status_code == 200:
+                response = response.json()
+                
+                if response["responseCode"] == 0:
+                    return response["data"]["shortLink"]
+                
+                if response["responseCode"] == 1 and response["errorCode"] == 6:
+                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+                
+                if response["responseCode"] == 1:
+                    raise ValueError("Error: ", response["status"]["message"])
+                
+            elif response.status_code == 504:
+                raise ValueError("Bakong server is busy, please try again later.")
             
-            if response["responseCode"] == 1:
-                raise ValueError("Error: ", response["status"]["message"])
+            else:
+                raise ValueError("Something went wrong. Please try again later.")
             
         except requests.exceptions.RequestException as e:
             raise ValueError(f"An error occurred: {e}")
@@ -161,15 +173,23 @@ class KHQR:
         
         try:
         
-            response = requests.post(self.__bakong_api + "/check_transaction_by_md5", json=payload, headers=headers).json()
+            response = requests.post(self.__bakong_api + "/check_transaction_by_md5", json=payload, headers=headers)
+            if response.status_code == 200:
+                response = response.json()
             
-            if response["responseCode"] == 0:
-                return "PAID"
+                if response["responseCode"] == 0:
+                    return "PAID"
+                
+                if response["responseCode"] == 1 and response["errorCode"] == 6:
+                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+                
+                return "UNPAID"
             
-            if response["responseCode"] == 1 and response["errorCode"] == 6:
-                raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",)
+            elif response.status_code == 504:
+                raise ValueError("Bakong server is busy, please try again later.")
             
-            return "UNPAID"
+            else:
+                raise ValueError("Something went wrong. Please try again later.")
 
         except requests.exceptions.RequestException as e:
             raise ValueError(f"An error occurred: {e}")
@@ -194,20 +214,29 @@ class KHQR:
         
         try:
         
-            response = requests.post(self.__bakong_api + "/check_transaction_by_md5_list", json=md5_list, headers=headers).json()
+            response = requests.post(self.__bakong_api + "/check_transaction_by_md5_list", json=md5_list, headers=headers)
             
-            if response["responseCode"] == 0:
-                # if md5 is SUCCESS, then append md5 to paid_list
-                paid_list = []
-                for data in response["data"]:
-                    if data["status"] == "SUCCESS":
-                        paid_list.append(data["md5"])
-                return paid_list
+            if response.status_code == 200:
+                response = response.json()
             
-            if response["responseCode"] == 1 and response["errorCode"] == 6:
-                raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+                if response["responseCode"] == 0:
+                    # if md5 is SUCCESS, then append md5 to paid_list
+                    paid_list = []
+                    for data in response["data"]:
+                        if data["status"] == "SUCCESS":
+                            paid_list.append(data["md5"])
+                    return paid_list
+                
+                if response["responseCode"] == 1 and response["errorCode"] == 6:
+                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+                
+                return []
             
-            return []
+            elif response.status_code == 504:
+                raise ValueError("Bakong server is busy, please try again later.")
+            
+            else:
+                raise ValueError("Something went wrong. Please try again later.")
         
         except requests.exceptions.RequestException as e:
             raise ValueError(f"An error occurred: {e}")
