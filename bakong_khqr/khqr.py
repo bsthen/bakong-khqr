@@ -54,7 +54,7 @@ class KHQR:
         """
         Create a QR code string based on provided information.
 
-        :param bank_account: Bank account information from Bakong profile (e.g., your_name@aba).
+        :param bank_account: Bank account information from Bakong profile (e.g., your_name@bank).
         :param merchant_name: Name of the merchant (e.g., Your Name).
         :param merchant_city: City of the merchant (e.g., Phnom Penh).
         :param amount: Transaction amount (e.g., 1.09).
