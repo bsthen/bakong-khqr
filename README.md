@@ -50,9 +50,9 @@ pip3 install --upgrade bakong-khqr
 
 ## Usage
 
-The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment transaction for Bakong KHQR.
+The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment, Get Payment transaction for Bakong KHQR.
 
-### Importing the Library
+### Importing the package
 
 You can import the KHQR class from the package as follows:
 
@@ -68,6 +68,7 @@ To generate QR code data for a transaction, create an instance of the KHQR() cla
 - generate_deeplink() method with the required parameters.
 - generate_md5() method with the required parameters.
 - check_payment() method with the required parameters.
+- get_payment() method with the required parameters.
 - check_bulk_payments() method with the required parameters.
 
 Example:
@@ -75,10 +76,10 @@ Example:
 ```bash
 from bakong_khqr import KHQR
 
-# Create an instance of KHQR with Bakong Developer Token
+# Create an instance of KHQR with Bakong Developer Token:
 khqr = KHQR("eyJhbGciOiJIUzI1NiIsI...nMhgG87BWeDg9Lu-_CKe1SMqC0")
 
-# Generate QR code data for a transaction
+# Generate QR code data for a transaction:
 qr = khqr.create_qr(
     bank_account='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
     merchant_name='Your Name',
@@ -94,7 +95,7 @@ qr = khqr.create_qr(
 print(qr)
 # String Result: 00020101021229180014user_name@bank520459995802KH5909Your Name6010Phnom Penh991700131724927295157541100000009800530311662610112TRX0192837750211855123456780305MShop0717Buy 1A_Level_Book63041087
 
-# Generate Deeplink
+# Generate Deeplink:
 deeplink = khqr.generate_deeplink(
     qr,
     callback="https://your_website.com/shop/details?q=ABC", # Or your app's custom scheme (e.g., mshop://purchase/39482)
@@ -109,13 +110,35 @@ md5 = khqr.generate_md5(qr)
 print(md5)
 # String Result: dfcabf4598d1c405a75540a3d4ca099d
 
-# Check Transaction paid or unpaid
+# Check Transaction paid or unpaid:
 payment_status = khqr.check_payment(md5)
 print(payment_status)
 # String Result: "UNPAID"
 # Indicates that this transaction has not yet been paid.
 
-# Check Bulk Transactions
+# Retrieve the payment information:
+#e.g. In case static QR code (static=True) is used for payment, and the amount is not known from the user's input.
+payment_info = khqr.get_payment(md5)
+print(payment_info)
+# Object Result:
+# {
+#     "hash": "a7121ca103c.....eb3671b9601a6",
+#     "fromAccountId": "bankkhppxxx@bank",
+#     "toAccountId": "your_name@bank",
+#     "currency": "KHR",
+#     "amount": 9800,
+#     "description": "Cashier-01",
+#     "createdDateMs": 1739###953000,
+#     "acknowledgedDateMs": 1739###954000,
+#     "trackingStatus": null,
+#     "receiverBank": null,
+#     "receiverBankAccount": null,
+#     "instructionRef": null,
+#     "externalRef": "100FT3###6550298"
+# }
+# You can retrieve information such as the amount to integrate into your system.
+
+# Check Bulk Transactions:
 md5_list = [
     "dfcabf4598d1c405a75540a3d4ca099d", 
     "5154e4f795634ff1a0ae4b48e53a6d9c",
@@ -164,6 +187,10 @@ print(bulk_payments_status)
 #### Parameters for `check_bulk_payments()` Method
 
 - `md5_list`: md5 list of all transacrions generate from generate_md5() method.
+
+#### Parameters for `get_payment()` Method
+
+- `md5`: Valid hash md5 from generate_md5() method of the correct transaction.
 
 ## Bakong Official
 

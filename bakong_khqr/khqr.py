@@ -240,3 +240,47 @@ class KHQR:
         
         except requests.exceptions.RequestException as e:
             raise ValueError(f"An error occurred: {e}")
+        
+    def get_payment(
+        self, 
+        md5: str
+        ) -> str:
+        """
+        Retrieve information about a paid transaction based on MD5 hash.
+
+        :param md5: MD5 hash of the QR code generated from generate_md5() method.
+        :return: A dictionary (object) containing the transaction information if paid, or None if the transaction is not paid.
+        """
+        
+        self.__check_bakong_token() # Check if Bakong Developer Token is provided
+        
+        payload = {
+            "md5": md5
+        }
+        headers = {
+            "Authorization": f"Bearer {self.__bakong_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+        
+            response = requests.post(self.__bakong_api + "/check_transaction_by_md5", json=payload, headers=headers)
+            if response.status_code == 200:
+                response = response.json()
+            
+                if response["responseCode"] == 0:
+                    return response["data"]
+                
+                if response["responseCode"] == 1 and response["errorCode"] == 6:
+                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+                
+                return None
+            
+            elif response.status_code == 504:
+                raise ValueError("Bakong server is busy, please try again later.")
+            
+            else:
+                raise ValueError("Something went wrong. Please try again later.")
+
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"An error occurred: {e}")

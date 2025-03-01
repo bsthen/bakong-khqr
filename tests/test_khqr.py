@@ -44,6 +44,9 @@ class TestKHQR(unittest.TestCase):
         # Check transaction paid or unpaid
         payment_status = self.khqr.check_payment(md5)
         
+        # Retrieve the payment information
+        payment_info = self.khqr.get_payment(md5)
+        
         # Check Bulk Transactions
         md5_list = [
             "dfcabf4598d1c405a75540a3d4ca099d", 
@@ -59,6 +62,7 @@ class TestKHQR(unittest.TestCase):
         print("Deeplink:", deeplink)
         print("Transaction MD5:", md5)
         print("Check Payment Status:", payment_status)
+        print("Payment Information:", payment_info)
         print("Check Bulk Payments Status:", bulk_payments_status)
 
 if __name__ == '__main__':
