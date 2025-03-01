@@ -37,6 +37,19 @@ class KHQR:
         if not self.__bakong_token:
             raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
 
+    def __post_request(self, endpoint: str, payload: dict) -> dict:
+        self.__check_bakong_token() # Check if Bakong Developer Token is provided
+        headers = {"Authorization": f"Bearer {self.__bakong_token}", "Content-Type": "application/json"}
+        response = requests.post(self.__bakong_api + endpoint, json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 401:
+            raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+        elif response.status_code == 504:
+            raise ValueError("Bakong server is busy, please try again later.")
+        else:
+            raise ValueError("Something went wrong. Please try again later.")
     
     def create_qr(
         self,
@@ -81,6 +94,18 @@ class KHQR:
         qr_data += self.__crc.value(qr_data)
         return qr_data
 
+    def generate_md5(
+        self, 
+        qr: str
+        ) -> str:
+        """
+        Generate an MD5 hash for the QR code.
+
+        :param qr: QR code string generated from create_qr() method.
+        :return: MD5 hash as a string (32 characters).
+        """
+        return self.__hash.md5(qr)
+    
     def generate_deeplink(
         self, 
         qr: str, 
@@ -97,8 +122,6 @@ class KHQR:
         :param appName: Name of your app or website (default: MyAppName).
         :return: Deep link URL as a string.
         """
-
-        self.__check_bakong_token() # Check if Bakong Developer Token is provided
         
         payload = {
             "qr": qr,
@@ -108,47 +131,9 @@ class KHQR:
                 "appDeepLinkCallback": callback
             }
         }
-        headers = {
-            "Authorization": f"Bearer {self.__bakong_token}",
-            "Content-Type": "application/json"
-        }
         
-        try:
-        
-            response = requests.post(self.__bakong_api + "/generate_deeplink_by_qr", json=payload, headers=headers)
-            
-            if response.status_code == 200:
-                response = response.json()
-                
-                if response["responseCode"] == 0:
-                    return response["data"]["shortLink"]
-                
-                if response["responseCode"] == 1 and response["errorCode"] == 6:
-                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
-                
-                if response["responseCode"] == 1:
-                    raise ValueError("Error: ", response["status"]["message"])
-                
-            elif response.status_code == 504:
-                raise ValueError("Bakong server is busy, please try again later.")
-            
-            else:
-                raise ValueError("Something went wrong. Please try again later.")
-            
-        except requests.exceptions.RequestException as e:
-            raise ValueError(f"An error occurred: {e}")
-        
-    def generate_md5(
-        self, 
-        qr: str
-        ) -> str:
-        """
-        Generate an MD5 hash for the QR code.
-
-        :param qr: QR code string generated from create_qr() method.
-        :return: MD5 hash as a string (32 characters).
-        """
-        return self.__hash.md5(qr)
+        response = self.__post_request("/generate_deeplink_by_qr", payload)
+        return response.get("data", {}).get("shortLink", None) if response.get("responseCode") == 0 else None
     
     def check_payment(
         self, 
@@ -161,38 +146,30 @@ class KHQR:
         :return: Transaction status as a string (PAID or UNPAID).
         """
         
-        self.__check_bakong_token() # Check if Bakong Developer Token is provided
+        payload = {
+            "md5": md5
+        }
+        
+        response = self.__post_request("/check_transaction_by_md5", payload)
+        return "PAID" if response.get("responseCode") == 0 else "UNPAID"
+    
+    def get_payment(
+        self, 
+        md5: str
+        ) -> str:
+        """
+        Retrieve information about a paid transaction based on MD5 hash.
+
+        :param md5: MD5 hash of the QR code generated from generate_md5() method.
+        :return: A dictionary (object) containing the transaction information if paid, or None if the transaction is not paid.
+        """
         
         payload = {
             "md5": md5
         }
-        headers = {
-            "Authorization": f"Bearer {self.__bakong_token}",
-            "Content-Type": "application/json"
-        }
         
-        try:
-        
-            response = requests.post(self.__bakong_api + "/check_transaction_by_md5", json=payload, headers=headers)
-            if response.status_code == 200:
-                response = response.json()
-            
-                if response["responseCode"] == 0:
-                    return "PAID"
-                
-                if response["responseCode"] == 1 and response["errorCode"] == 6:
-                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
-                
-                return "UNPAID"
-            
-            elif response.status_code == 504:
-                raise ValueError("Bakong server is busy, please try again later.")
-            
-            else:
-                raise ValueError("Something went wrong. Please try again later.")
-
-        except requests.exceptions.RequestException as e:
-            raise ValueError(f"An error occurred: {e}")
+        response = self.__post_request("/check_transaction_by_md5", payload)
+        return response.get("data", None) if response.get("responseCode") == 0 else None
     
     def check_bulk_payments(
         self,
@@ -205,82 +182,5 @@ class KHQR:
         :return: md5 list of paid transactions.
         """
         
-        self.__check_bakong_token()
-        
-        headers = {
-            "Authorization": f"Bearer {self.__bakong_token}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-        
-            response = requests.post(self.__bakong_api + "/check_transaction_by_md5_list", json=md5_list, headers=headers)
-            
-            if response.status_code == 200:
-                response = response.json()
-            
-                if response["responseCode"] == 0:
-                    # if md5 is SUCCESS, then append md5 to paid_list
-                    paid_list = []
-                    for data in response["data"]:
-                        if data["status"] == "SUCCESS":
-                            paid_list.append(data["md5"])
-                    return paid_list
-                
-                if response["responseCode"] == 1 and response["errorCode"] == 6:
-                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
-                
-                return []
-            
-            elif response.status_code == 504:
-                raise ValueError("Bakong server is busy, please try again later.")
-            
-            else:
-                raise ValueError("Something went wrong. Please try again later.")
-        
-        except requests.exceptions.RequestException as e:
-            raise ValueError(f"An error occurred: {e}")
-        
-    def get_payment(
-        self, 
-        md5: str
-        ) -> str:
-        """
-        Retrieve information about a paid transaction based on MD5 hash.
-
-        :param md5: MD5 hash of the QR code generated from generate_md5() method.
-        :return: A dictionary (object) containing the transaction information if paid, or None if the transaction is not paid.
-        """
-        
-        self.__check_bakong_token() # Check if Bakong Developer Token is provided
-        
-        payload = {
-            "md5": md5
-        }
-        headers = {
-            "Authorization": f"Bearer {self.__bakong_token}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-        
-            response = requests.post(self.__bakong_api + "/check_transaction_by_md5", json=payload, headers=headers)
-            if response.status_code == 200:
-                response = response.json()
-            
-                if response["responseCode"] == 0:
-                    return response["data"]
-                
-                if response["responseCode"] == 1 and response["errorCode"] == 6:
-                    raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
-                
-                return None
-            
-            elif response.status_code == 504:
-                raise ValueError("Bakong server is busy, please try again later.")
-            
-            else:
-                raise ValueError("Something went wrong. Please try again later.")
-
-        except requests.exceptions.RequestException as e:
-            raise ValueError(f"An error occurred: {e}")
+        response = self.__post_request("/check_transaction_by_md5_list", md5_list)
+        return [data["md5"] for data in response.get("data", []) if data.get("status") == "SUCCESS"]
