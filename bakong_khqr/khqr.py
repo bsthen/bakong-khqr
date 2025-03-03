@@ -1,4 +1,6 @@
-import requests
+import json
+import http.client
+from urllib.parse import urlparse
 from typing import Optional
 
 from .sdk.crc import CRC
@@ -38,18 +40,30 @@ class KHQR:
             raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
 
     def __post_request(self, endpoint: str, payload: dict) -> dict:
-        self.__check_bakong_token() # Check if Bakong Developer Token is provided
-        headers = {"Authorization": f"Bearer {self.__bakong_token}", "Content-Type": "application/json"}
-        response = requests.post(self.__bakong_api + endpoint, json=payload, headers=headers)
+        self.__check_bakong_token()  # Check if Bakong Developer Token is provided
         
-        if response.status_code == 200:
-            return response.json()
-        elif response.status_code == 401:
+        parsed_url = urlparse(self.__bakong_api)
+        conn = http.client.HTTPSConnection(parsed_url.netloc)
+        
+        headers = {
+            "Authorization": f"Bearer {self.__bakong_token}",
+            "Content-Type": "application/json"
+        }
+
+        full_path = f"{parsed_url.path}{endpoint}"  # Ensure correct path formatting
+        conn.request("POST", full_path, body=json.dumps(payload), headers=headers)
+        
+        response = conn.getresponse()
+        response_data = response.read().decode()
+
+        if response.status == 200:
+            return json.loads(response_data)
+        elif response.status == 401:
             raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
-        elif response.status_code == 504:
+        elif response.status == 504:
             raise ValueError("Bakong server is busy, please try again later.")
         else:
-            raise ValueError("Something went wrong. Please try again later.")
+            raise ValueError(f"Something went wrong. HTTP {response.status}: {response_data}")
     
     def create_qr(
         self,
