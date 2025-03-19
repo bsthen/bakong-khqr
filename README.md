@@ -217,4 +217,7 @@ If you would like to contribute to this project, please fork the repository and 
 
 For any questions or feedback, you can contact [ME](mailto:bansokthen@gmail.com) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
 
-![KHQR Donation](https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/bakong.jpg)
+<p align="center">
+        <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/khqr_riel.png" alt="KHQR Donation" width="auto" height="180" style="display: inline-block; margin-right: 10px;">
+        <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/khqr_dollar.png" alt="KHQR Donation" width="auto" height="180" style="display: inline-block;">
+</p>
