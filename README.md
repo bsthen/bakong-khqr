@@ -215,4 +215,6 @@ If you would like to contribute to this project, please fork the repository and 
 
 ## Contact
 
-For any questions or feedback, you can contact [ME](mailto:bansokthen@gmail.com) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen) ABA: 000510062
+For any questions or feedback, you can contact [ME](mailto:bansokthen@gmail.com) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
+
+![KHQR Donation](https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/bakong.jpg)
