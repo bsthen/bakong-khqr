@@ -62,7 +62,7 @@ class EMV:
         self.default_crc_tag = "6304"
         
         # Invalid Length Constraints
-        self.invalid_length_khqr = 2
+        self.invalid_length_khqr = 12
         self.invalid_length_merchant_name = 25
         self.invalid_length_bakong_account = 32
         self.invalid_length_amount = 13
