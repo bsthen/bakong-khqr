@@ -152,6 +152,31 @@ print(bulk_payments_status)
 # List Result: ["5154e4f795634ff1a0ae4b48e53a6d9c", "495fdaec0be5d94c89bc1283c7283d3d"]
 # Returns a list containing only the MD5 hashes that correspond to successful (paid) transactions.
 
+
+# ⚠️ Bulk Transaction Check Limit
+# The Bakong API allows a maximum of 50 MD5 hashes per request when using the check_bulk_payments() method.
+#If you pass more than 50 hashes, the function will raise a ValueError to prevent unexpected API errors.
+
+md5_list = [md5_1, md5_2, ..., md5_51]  # 51 hashes
+
+# This will raise:
+# ValueError: The md5_list exceeds the allowed limit of 50 hashes per request.
+result = khqr.check_bulk_payments(md5_list)
+
+# ✅ If you need to check more than 50 transactions, you must handle chunking manually:
+def chunked(iterable, size=50):
+    for i in range(0, len(iterable), size):
+        yield iterable[i:i + size]
+
+all_md5 = [...]  # more than 50 md5 hashes
+paid_md5 = []
+
+for batch in chunked(all_md5):
+    paid_md5.extend(khqr.check_bulk_payments(batch))
+
+print(paid_md5)
+# List Result: ["5154e4f795634ff1a0ae4b48e53a6d9c", "495fdaec0be5d94c89bc1283c7283d3d"]
+# Returns a list containing only the MD5 hashes that correspond to successful (paid) transactions.
 ```
 
 #### Parameters for `create_qr()` Method

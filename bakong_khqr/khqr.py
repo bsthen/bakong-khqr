@@ -188,13 +188,16 @@ class KHQR:
     def check_bulk_payments(
         self,
         md5_list: list[str]
-        ) -> list[str]:
+    ) -> list[str]:
         """
         Check the transaction status based on the list of MD5 hashes.
 
         :param md5_list: List of MD5 hashes generated from generate_md5() method.
         :return: md5 list of paid transactions.
+        :raises ValueError: If the md5_list exceeds 50 items.
         """
-        
+        if len(md5_list) > 50:
+            raise ValueError("The md5_list exceeds the allowed limit of 50 hashes per request.")
+
         response = self.__post_request("/check_transaction_by_md5_list", md5_list)
         return [data["md5"] for data in response.get("data", []) if data.get("status") == "SUCCESS"]
