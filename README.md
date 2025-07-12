@@ -179,6 +179,41 @@ print(paid_md5)
 # Returns a list containing only the MD5 hashes that correspond to successful (paid) transactions.
 ```
 
+### Generate QR Image
+
+The `qr_image()` method generates a QR code image from a QR string.
+Make sure you install the optional [image] extras to get dependencies like Pillow and qrcode:
+
+```bash
+pip install bakong-khqr[image]
+```
+
+Example:
+
+```bash
+from bakong_khqr import KHQR
+
+khqr = KHQR("your_bakong_token")
+
+qr = khqr.create_qr(
+    bank_account='user_name@bank',
+    merchant_name='Your Name',
+    merchant_city='Phnom Penh',
+    amount=100.00,
+    currency='USD',
+    store_label='MShop',
+    phone_number='85512345678',
+    bill_number='TRX123456',
+    terminal_label='Cashier-01',
+    static=False
+)
+
+# Generate QR image as PNG file path
+png_path = khqr.qr_image(qr)
+print("QR image saved at:", png_path)
+
+```
+
 #### Parameters for `create_qr()` Method
 
 - `bank_account`: The bank account associated with the transaction.
@@ -216,6 +251,12 @@ print(paid_md5)
 #### Parameters for `get_payment()` Method
 
 - `md5`: Valid hash md5 from generate_md5() method of the correct transaction.
+
+#### Parameters for `qr_image()` Method
+
+- `qr`: QR string to convert into an image from create_qr().
+- `output_path`: Optional path to save the image. If not provided, returns a temp file path.
+- `format`: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
 
 ## Bakong Official
 

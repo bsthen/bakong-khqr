@@ -8,6 +8,7 @@ from .sdk.mcc import MCC
 from .sdk.hash import HASH
 from .sdk.amount import Amount
 from .sdk.timestamp import TimeStamp
+from .sdk.image_tools import ImageTools
 from .sdk.country_code import CountryCode
 from .sdk.merchant_city import MerchantCity
 from .sdk.merchant_name import MerchantName
@@ -24,6 +25,7 @@ class KHQR:
         self.__hash = HASH()
         self.__amount = Amount()
         self.__timestamp = TimeStamp()
+        self.__image_tools = ImageTools()
         self.__country_code = CountryCode()
         self.__merchant_city = MerchantCity()
         self.__merchant_name = MerchantName()
@@ -201,3 +203,42 @@ class KHQR:
 
         response = self.__post_request("/check_transaction_by_md5_list", md5_list)
         return [data["md5"] for data in response.get("data", []) if data.get("status") == "SUCCESS"]
+    
+    def qr_image(
+        self, qr: str,
+        format: str = "png",
+        output_path: str = None,
+        ) -> str:
+        """
+        Generate a styled KHQR image from the QR string.
+
+        :param qr: QR string to convert into an image (from create_qr()).
+        :param output_path: Optional path to save the image. If not provided, returns a temp file path.
+        :param format: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
+        :return: File path of the generated image.
+        :raises ImportError: If Pillow or qrcode libraries are missing.
+        """
+        
+        try:
+            from PIL import Image  # noqa: F401
+            import qrcode  # noqa: F401
+        except ImportError:
+            raise ImportError(
+                "Image generation requires extra dependencies. "
+                "Install them using: pip install bakong-khqr[image]"
+            )
+
+        result = self.__image_tools.generate(qr)
+
+        if format.lower() == "jpeg":
+            return result.to_jpeg(output_path)
+        elif format.lower() == "webp":
+            return result.to_webp(output_path)
+        elif format.lower() == "bytes":
+            return result.to_bytes()
+        elif format.lower() == "base64":
+            return result.to_base64()
+        elif format.lower() == "base64_uri":
+            return result.to_data_uri()
+        else:
+            return result.to_png(output_path)
