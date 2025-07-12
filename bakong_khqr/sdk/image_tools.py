@@ -7,15 +7,20 @@ from .emv_parser import EMVParser
 
 class ImageTools:
     def __init__(self):
-        try:
-            self.__regular_font = resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").read_bytes()
-            self.__bold_font = resources.files("bakong_khqr.sdk.assets").joinpath("bold.ttf").read_bytes()
-            self.__khqr_logo = resources.files("bakong_khqr.sdk.assets").joinpath("logo.png").read_bytes()
-            self.__usd_icon = resources.files("bakong_khqr.sdk.assets").joinpath("USD.png").read_bytes()
-            self.__khr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").read_bytes()
-                
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"Required asset not found: {e.filename}. Please ensure the assets are correctly installed.") from e
+        self.__regular_font = resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").read_bytes()
+        self.__bold_font = resources.files("bakong_khqr.sdk.assets").joinpath("bold.ttf").read_bytes()
+        self.__khqr_logo = resources.files("bakong_khqr.sdk.assets").joinpath("logo.png").read_bytes()
+        self.__usd_icon = resources.files("bakong_khqr.sdk.assets").joinpath("USD.png").read_bytes()
+        self.__khr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").read_bytes()
+        
+    def __format_amount(self, amount: float, currency: str) -> str:
+        # Format amount based on currency
+        if currency.upper() == "USD":
+            parts = f"{amount:,.2f}".split(".")
+            grouped = parts[0].replace(",", ".")
+            return f"{grouped},{parts[1]}"
+        else:
+            return f"{amount:,.2f}"
         
     def __draw_red_corner(self, draw, width, height, fold_size=40, color="#cc0000"):
     # Top-right triangle (fold)
@@ -107,8 +112,10 @@ class ImageTools:
 
         # Merchant name, amount, currency with loaded fonts
         draw.text((32, 80), merchant_name, fill="black", font=merchant_name_font)
+        
         # Format amount and measure its width
-        amount_text = f"{amount:,.2f}"
+        amount_text = self.__format_amount(amount, currency)
+        
         # Use a dummy draw object to measure text
         dummy_img = Image.new("RGB", (1, 1))
         dummy_draw = ImageDraw.Draw(dummy_img)
