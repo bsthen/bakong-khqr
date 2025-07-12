@@ -230,7 +230,7 @@ class KHQR:
 
         result = self.__image_tools.generate(qr)
 
-        if format.lower() == "jpeg":
+        if format.lower() == "jpeg" or format.lower() == "jpg":
             return result.to_jpeg(output_path)
         elif format.lower() == "webp":
             return result.to_webp(output_path)

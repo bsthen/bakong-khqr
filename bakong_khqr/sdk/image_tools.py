@@ -14,10 +14,13 @@ class ImageTools:
     def __init__(self):
         try:
             with resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").open("rb") as f:
-                self.__regular_font = ImageFont.truetype(f, 13)
+                self.__regular_font_merchant_name = ImageFont.truetype(f, 16)
+                
+            with resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").open("rb") as f:
+                self.__regular_font_currency = ImageFont.truetype(f, 13)
                 
             with resources.files("bakong_khqr.sdk.assets").joinpath("bold.ttf").open("rb") as f:
-                self.__bold_font = ImageFont.truetype(f, 22)
+                self.__bold_font_amount = ImageFont.truetype(f, 22)
                 
             with resources.files("bakong_khqr.sdk.assets").joinpath("logo.png").open("rb") as f:
                 self.__khqr_logo = Image.open(f).convert("RGBA")
@@ -99,7 +102,7 @@ class ImageTools:
         img.paste(khqr_logo, (width // 2 - 40, 20), khqr_logo)
 
         # Merchant name, amount, currency with loaded fonts
-        draw.text((32, 80), merchant_name, fill="black", font=self.__regular_font)
+        draw.text((32, 80), merchant_name, fill="black", font=self.__regular_font_merchant_name)
         # Format amount and measure its width
         amount_text = f"{amount:,.2f}"
         # Use a dummy draw object to measure text
@@ -107,15 +110,15 @@ class ImageTools:
         dummy_draw = ImageDraw.Draw(dummy_img)
 
         # Get bounding box of the amount text
-        bbox = dummy_draw.textbbox((0, 0), amount_text, font=self.__bold_font)
+        bbox = dummy_draw.textbbox((0, 0), amount_text, font=self.__bold_font_amount)
         amount_width = bbox[2] - bbox[0]  # right - left
 
         # Draw amount
-        draw.text((30, 110), amount_text, fill="black", font=self.__bold_font)
+        draw.text((30, 110), amount_text, fill="black", font=self.__bold_font_amount)
 
         # Draw currency next to amount
         currency_x = 30 + amount_width + 5
-        draw.text((currency_x, 119), currency, fill="black", font=self.__regular_font)
+        draw.text((currency_x, 119), currency, fill="black", font=self.__regular_font_currency)
 
 
         # Dashed line
@@ -135,7 +138,6 @@ class ImageTools:
 
         # Return wrapped result
         return QRImageResult(rounded_img)
-
     
 class QRImageResult:
     def __init__(self, image: Image.Image):
