@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://www.youtube.com/watch?v=qGjQZ6V393c" target="_blank" >
-        <img src="https://img.youtube.com/vi/qGjQZ6V393c/0.jpg" alt="YouTube">
+        <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/dev_qr.png" width="500px" heigh="492px" alt="YouTube">
     </a>
 </p>
 
