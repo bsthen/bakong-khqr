@@ -185,7 +185,7 @@ The `qr_image()` method generates a QR code image from a QR string.
 Make sure you install the optional [image] extras to get dependencies like Pillow and qrcode:
 
 ```bash
-pip install bakong-khqr[image]
+pip install 'bakong-khqr[image]'
 ```
 
 Example:
