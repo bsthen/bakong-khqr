@@ -101,7 +101,7 @@ class ImageTools:
         # Merchant name, amount, currency with loaded fonts
         draw.text((32, 80), merchant_name, fill="black", font=self.__regular_font)
         # Format amount and measure its width
-        amount_text = f"{amount:.2f}"
+        amount_text = f"{amount:,.2f}"
         # Use a dummy draw object to measure text
         dummy_img = Image.new("RGB", (1, 1))
         dummy_draw = ImageDraw.Draw(dummy_img)

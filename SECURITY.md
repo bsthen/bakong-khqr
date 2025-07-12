@@ -6,7 +6,8 @@ The following versions of the `Bakong-KHQR` project are currently being supporte
 
 | Version   | Supported          |
 | --------- | ------------------ |
-| 0.3.x     | :white_check_mark: |
+| 0.4.x     | :white_check_mark: |
+| 0.3.x     | :x:                |
 | 0.2.x     | :x:                |
 | 0.1.x     | :x:                |
 | < 0.1.0   | :x:                |
