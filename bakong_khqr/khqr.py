@@ -218,15 +218,6 @@ class KHQR:
         :return: File path of the generated image.
         :raises ImportError: If Pillow or qrcode libraries are missing.
         """
-        
-        try:
-            from PIL import Image  # noqa: F401
-            import qrcode  # noqa: F401
-        except ImportError:
-            raise ImportError(
-                "Image generation requires extra dependencies. "
-                "Install them using: pip install bakong-khqr[image]"
-            )
 
         result = self.__image_tools.generate(qr)
 

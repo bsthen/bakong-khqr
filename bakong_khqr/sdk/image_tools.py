@@ -1,35 +1,18 @@
 import os
 import io
 import base64
-import qrcode
 import tempfile
-import qrcode.constants
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
 from importlib import resources
 from .emv_parser import EMVParser
 
 class ImageTools:
     def __init__(self):
         try:
-            with resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").open("rb") as f:
-                self.__regular_font_merchant_name = ImageFont.truetype(f, 16)
-                
-            with resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").open("rb") as f:
-                self.__regular_font_currency = ImageFont.truetype(f, 13)
-                
-            with resources.files("bakong_khqr.sdk.assets").joinpath("bold.ttf").open("rb") as f:
-                self.__bold_font_amount = ImageFont.truetype(f, 22)
-                
-            with resources.files("bakong_khqr.sdk.assets").joinpath("logo.png").open("rb") as f:
-                self.__khqr_logo = Image.open(f).convert("RGBA")
-                
-            with resources.files("bakong_khqr.sdk.assets").joinpath("USD.png").open("rb") as f:
-                self.__usd_icon = Image.open(f).convert("RGBA")
-                
-            with resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").open("rb") as f:
-                self.__khr_icon = Image.open(f).convert("RGBA")
+            self.__regular_font = resources.files("bakong_khqr.sdk.assets").joinpath("regular.ttf").read_bytes()
+            self.__bold_font = resources.files("bakong_khqr.sdk.assets").joinpath("bold.ttf").read_bytes()
+            self.__khqr_logo = resources.files("bakong_khqr.sdk.assets").joinpath("logo.png").read_bytes()
+            self.__usd_icon = resources.files("bakong_khqr.sdk.assets").joinpath("USD.png").read_bytes()
+            self.__khr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").read_bytes()
                 
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Required asset not found: {e.filename}. Please ensure the assets are correctly installed.") from e
@@ -45,6 +28,11 @@ class ImageTools:
 
 
     def __add_rounded_corners(self, image, radius):
+        try:
+            from PIL import Image, ImageDraw
+        except ImportError:
+            raise ImportError("Image processing requires: pip install 'bakong-khqr[image]'")
+        
         width, height = image.size
         # Create a mask
         mask = Image.new("L", (width, height), 0)
@@ -74,6 +62,22 @@ class ImageTools:
             drawn += gap_length
     
     def generate(self, qr_string):
+        
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            import qrcode
+            import qrcode.constants
+        except ImportError:
+            raise ImportError("Image processing requires: pip install 'bakong-khqr[image]'")
+        
+        merchant_name_font = ImageFont.truetype(io.BytesIO(self.__regular_font), 16)
+        bold_amount_font = ImageFont.truetype(io.BytesIO(self.__bold_font), 22)
+        regular_currency_font = ImageFont.truetype(io.BytesIO(self.__regular_font), 14)
+        
+        bakong_logo = Image.open(io.BytesIO(self.__khqr_logo)).convert("RGBA")
+        usd_icon = Image.open(io.BytesIO(self.__usd_icon)).convert("RGBA")
+        khr_icon = Image.open(io.BytesIO(self.__khr_icon)).convert("RGBA")
+        
         # Get the EMV data from the QR string
         emv = EMVParser(qr_string)
         merchant_name = emv.get("59") or "Unknown"
@@ -98,11 +102,11 @@ class ImageTools:
         draw.rectangle([(0, 0), (width, 60)], fill=(204, 0, 0))
 
         # KHQR logo
-        khqr_logo = self.__khqr_logo.resize((90, 21))
+        khqr_logo = bakong_logo.resize((90, 21))
         img.paste(khqr_logo, (width // 2 - 40, 20), khqr_logo)
 
         # Merchant name, amount, currency with loaded fonts
-        draw.text((32, 80), merchant_name, fill="black", font=self.__regular_font_merchant_name)
+        draw.text((32, 80), merchant_name, fill="black", font=merchant_name_font)
         # Format amount and measure its width
         amount_text = f"{amount:,.2f}"
         # Use a dummy draw object to measure text
@@ -110,15 +114,15 @@ class ImageTools:
         dummy_draw = ImageDraw.Draw(dummy_img)
 
         # Get bounding box of the amount text
-        bbox = dummy_draw.textbbox((0, 0), amount_text, font=self.__bold_font_amount)
+        bbox = dummy_draw.textbbox((0, 0), amount_text, font=bold_amount_font)
         amount_width = bbox[2] - bbox[0]  # right - left
 
         # Draw amount
-        draw.text((30, 110), amount_text, fill="black", font=self.__bold_font_amount)
+        draw.text((30, 110), amount_text, fill="black", font=bold_amount_font)
 
         # Draw currency next to amount
         currency_x = 30 + amount_width + 5
-        draw.text((currency_x, 119), currency, fill="black", font=self.__regular_font_currency)
+        draw.text((currency_x, 118), currency, fill="black", font=regular_currency_font)
 
 
         # Dashed line
@@ -128,7 +132,7 @@ class ImageTools:
         img.paste(qr_img, (10, 160))
 
         # Currency icon
-        currency_icon = self.__usd_icon if currency == "USD" else self.__khr_icon
+        currency_icon = usd_icon if currency == "USD" else khr_icon
         currency_icon = currency_icon.resize((40, 40))
         img.paste(currency_icon, (width // 2 - 20, 280), currency_icon)
 
@@ -140,6 +144,11 @@ class ImageTools:
         return QRImageResult(rounded_img)
     
 class QRImageResult:
+    try:
+        from PIL import Image
+    except ImportError:
+        raise ImportError("Image processing requires: pip install 'bakong-khqr[image]'")
+    
     def __init__(self, image: Image.Image):
         self.image = image
 
