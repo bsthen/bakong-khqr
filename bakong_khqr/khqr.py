@@ -3,6 +3,8 @@ import http.client
 from urllib.parse import urlparse
 from typing import Optional
 
+from bakong_khqr import __version__
+
 from .sdk.crc import CRC
 from .sdk.mcc import MCC
 from .sdk.hash import HASH
@@ -50,7 +52,7 @@ class KHQR:
         headers = {
             "Authorization": f"Bearer {self.__bakong_token}",
             "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0"
+            "User-Agent": f"bakong-khqr/{__version__} (+https://github.com/bsthen/bakong-khqr); Mozilla/5.0"
         }
 
         full_path = f"{parsed_url.path}{endpoint}"  # Ensure correct path formatting
