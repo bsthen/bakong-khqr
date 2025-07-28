@@ -3,7 +3,6 @@ import http.client
 from urllib.parse import urlparse
 from typing import Optional
 
-from bakong_khqr import __version__
 
 from .sdk.crc import CRC
 from .sdk.mcc import MCC
@@ -20,6 +19,7 @@ from .sdk.additional_data_field import AdditionalDataField
 from .sdk.payload_format_indicator import PayloadFormatIndicator
 from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 
+from .sdk.version import __version__
 class KHQR:
     def __init__(self, bakong_token: str = None):
         self.__crc = CRC()
