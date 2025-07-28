@@ -49,7 +49,8 @@ class KHQR:
         
         headers = {
             "Authorization": f"Bearer {self.__bakong_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0"
         }
 
         full_path = f"{parsed_url.path}{endpoint}"  # Ensure correct path formatting
