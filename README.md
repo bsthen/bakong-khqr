@@ -33,8 +33,9 @@ A Python package for generating payment transactions compliant with the Bakong K
 ## Requirement
 
 - Python3
-- Bakong Account (Full KYC)
-- Bakong Developer Token [https://api-bakong.nbc.gov.kh/register](https://api-bakong.nbc.gov.kh/register)
+- A Bakong account with full KYC verification
+- A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register](https://api-bakong.nbc.gov.kh/register))
+- A VPS or hosting service located in Cambodia (a Cambodian IP address is recommended)
 
 ## Installation
 
