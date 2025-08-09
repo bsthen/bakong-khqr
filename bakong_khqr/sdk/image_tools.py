@@ -36,7 +36,7 @@ class ImageTools:
         try:
             from PIL import Image, ImageDraw
         except ImportError:
-            raise ImportError("Image processing requires: pip install 'bakong-khqr[image]'")
+            raise ImportError('Image processing requires: pip install "bakong-khqr[image]"')
         
         width, height = image.size
         # Create a mask
@@ -73,7 +73,7 @@ class ImageTools:
             import qrcode
             import qrcode.constants
         except ImportError:
-            raise ImportError("Image processing requires: pip install 'bakong-khqr[image]'")
+            raise ImportError('Image processing requires: pip install "bakong-khqr[image]"')
         
         merchant_name_font = ImageFont.truetype(io.BytesIO(self.__regular_font), 16)
         bold_amount_font = ImageFont.truetype(io.BytesIO(self.__bold_font), 22)
@@ -151,33 +151,38 @@ class ImageTools:
         return QRImageResult(rounded_img)
     
 class QRImageResult:
-    try:
-        from PIL import Image
-    except ImportError:
-        raise ImportError("Image processing requires: pip install 'bakong-khqr[image]'")
-    
-    def __init__(self, image: Image.Image):
+    def __init__(self, image):
         self.image = image
 
+    def __require_pillow(self):
+        try:
+            from PIL import Image  # noqa: F401
+        except ImportError:
+            raise ImportError('Image processing requires: pip install "bakong-khqr[image]"')
+
     def to_png(self, path: str = None) -> str:
+        self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.png")
         self.image.save(path, format="PNG")
         return path
-    
+
     def to_jpeg(self, path: str = None) -> str:
+        self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.jpg")
         self.image.convert("RGB").save(path, format="JPEG")
         return path
-    
+
     def to_webp(self, path: str = None) -> str:
+        self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.webp")
         self.image.save(path, format="WEBP")
         return path
 
     def to_bytes(self) -> bytes:
+        self.__require_pillow()
         buffer = io.BytesIO()
         self.image.save(buffer, format="PNG")
         return buffer.getvalue()
@@ -187,3 +192,4 @@ class QRImageResult:
 
     def to_data_uri(self) -> str:
         return f"data:image/png;base64,{self.to_base64()}"
+

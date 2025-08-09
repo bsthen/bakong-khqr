@@ -1,7 +1,7 @@
 <h1 align="center"> Bakong-KHQR (Unofficial) </h1>
 
 <p align="center">
-<a href="https://www.youtube.com/watch?v=qGjQZ6V393c" target="_blank" >
+<a href="https://youtu.be/24bClwP3Tzo" target="_blank" >
         <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/dev_qr.png" width="500px" heigh="492px" alt="YouTube">
     </a>
 </p>
@@ -186,7 +186,7 @@ The `qr_image()` method generates a QR code image from a QR string.
 Make sure you install the optional [image] extras to get dependencies like Pillow and qrcode:
 
 ```bash
-pip3 install 'bakong-khqr[image]'
+pip3 install "bakong-khqr[image]"
 ```
 
 Example:
