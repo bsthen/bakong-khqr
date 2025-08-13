@@ -63,8 +63,18 @@ class KHQR:
 
         if response.status == 200:
             return json.loads(response_data)
+        elif response.status == 400:
+            raise ValueError("Bad request. Please check your input parameters and try again.")
         elif response.status == 401:
             raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
+        elif response.status == 403:
+            raise ValueError("Bakong API only accepts requests from Cambodia IP addresses. Your IP may be blocked or restricted.")
+        elif response.status == 404:
+            raise ValueError("The requested Bakong API endpoint does not exist. Please check the endpoint URL.")
+        elif response.status == 429:
+            raise ValueError("Too many requests. Please wait a while before trying again.")
+        elif response.status == 500:
+            raise ValueError("Bakong server encountered an internal error. Please try again later.")
         elif response.status == 504:
             raise ValueError("Bakong server is busy, please try again later.")
         else:
