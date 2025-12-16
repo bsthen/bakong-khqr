@@ -12,6 +12,7 @@ class ImageTools:
         self.__khqr_logo = resources.files("bakong_khqr.sdk.assets").joinpath("logo.png").read_bytes()
         self.__usd_icon = resources.files("bakong_khqr.sdk.assets").joinpath("USD.png").read_bytes()
         self.__khr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").read_bytes()
+        self.__khqr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("khqr.png").read_bytes()
         
     def __format_amount(self, amount: float, currency: str) -> str:
         # Format amount based on currency
@@ -82,6 +83,7 @@ class ImageTools:
         bakong_logo = Image.open(io.BytesIO(self.__khqr_logo)).convert("RGBA")
         usd_icon = Image.open(io.BytesIO(self.__usd_icon)).convert("RGBA")
         khr_icon = Image.open(io.BytesIO(self.__khr_icon)).convert("RGBA")
+        khqr_icon = Image.open(io.BytesIO(self.__khqr_icon)).convert("RGBA")
         
         # Get the EMV data from the QR string
         emv = EMVParser(qr_string)
@@ -139,7 +141,11 @@ class ImageTools:
         img.paste(qr_img, (10, 160))
 
         # Currency icon
-        currency_icon = usd_icon if currency == "USD" else khr_icon
+        if amount <= 0:
+            currency_icon = khqr_icon
+        else:
+            currency_icon = usd_icon if currency == "USD" else khr_icon
+            
         currency_icon = currency_icon.resize((40, 40))
         img.paste(currency_icon, (width // 2 - 20, 280), currency_icon)
 

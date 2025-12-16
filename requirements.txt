@@ -4,3 +4,4 @@ requests
 twine
 qrcode
 pillow
+build
