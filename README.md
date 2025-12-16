@@ -15,14 +15,18 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
     </a>
     <a href="https://pypi.org/project/bakong-khqr/" target="_blank" >
-        <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
+        <img src="https://img.shields.io/pypi/pyversions/bakong-khqr.svg" alt="Python Version">
     </a>
     <a href="https://pypi.org/project/bakong-khqr/" target="_blank" >
-        <img src="https://img.shields.io/pypi/pyversions/bakong-khqr.svg" alt="Python Version">
+        <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
+    </a>
+    <a href="https://socket.dev/pypi/package/bakong-khqr/0.4.17" target="_blank">
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.4.17?artifact_id=tar-gz"
+             alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
         <img src="https://static.pepy.tech/badge/bakong-khqr" alt="Downloads">
-</a>
+    </a>
 </p>
 
 ## Download Mobile App
