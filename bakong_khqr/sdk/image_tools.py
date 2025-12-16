@@ -13,7 +13,12 @@ class ImageTools:
         self.__usd_icon = resources.files("bakong_khqr.sdk.assets").joinpath("USD.png").read_bytes()
         self.__khr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").read_bytes()
         self.__khqr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("khqr.png").read_bytes()
-        
+    
+    def __get_currency_icon(self, amount: float, currency: str, usd_icon, khr_icon, khqr_icon):
+        if amount <= 0:
+            return khqr_icon
+        return usd_icon if currency == "USD" else khr_icon
+
     def __format_amount(self, amount: float, currency: str) -> str:
         # Format amount based on currency
         if currency.upper() == "USD":
@@ -141,10 +146,7 @@ class ImageTools:
         img.paste(qr_img, (10, 160))
 
         # Currency icon
-        if amount <= 0:
-            currency_icon = khqr_icon
-        else:
-            currency_icon = usd_icon if currency == "USD" else khr_icon
+        currency_icon = self.__get_currency_icon(amount, currency, usd_icon, khr_icon, khqr_icon)
             
         currency_icon = currency_icon.resize((40, 40))
         img.paste(currency_icon, (width // 2 - 20, 280), currency_icon)
