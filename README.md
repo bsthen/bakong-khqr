@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://youtu.be/24bClwP3Tzo" target="_blank" >
-        <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/dev_qr.png" width="500px" heigh="492px" alt="YouTube">
+        <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/dev_qr.png" width="500px" heigh="492px" alt="YouTube">
     </a>
 </p>
 
@@ -31,8 +31,35 @@ A Python package for generating payment transactions compliant with the Bakong K
 
 ## Download Mobile App
 
-- Bakong App ( [App Store](https://apps.apple.com/kh/app/bakong/id1440829141) | [Play Store](https://play.google.com/store/apps/details?id=jp.co.soramitsu.bakong) )
-- Bakong Tourists ( [App Store](https://apps.apple.com/kh/app/bakong-tourists/id6471774666) | [Play Store](https://play.google.com/store/apps/details?id=kh.gov.nbc.bakong.tourist) )
+- <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/bakong_app.png"
+       alt="Bakong App"
+       width="28"
+       style="vertical-align: middle;" />
+  <strong style="margin: 0 6px;">Bakong App</strong>
+  <a href="https://apps.apple.com/kh/app/bakong/id1440829141" target="_blank">
+      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white"
+           style="vertical-align: middle;" />
+  </a> | 
+  <a href="https://play.google.com/store/apps/details?id=jp.co.soramitsu.bakong" target="_blank">
+      <img src="https://img.shields.io/badge/Google_Play-414141?style=flat&logo=google-play&logoColor=white"
+           style="vertical-align: middle;" />
+  </a>
+
+- <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/bakong_tourists.png"
+       alt="Bakong Tourists"
+       width="28"
+       style="vertical-align: middle;" />
+  <strong style="margin: 0 6px;">Bakong Tourists</strong>
+  <a href="https://apps.apple.com/kh/app/bakong-tourists/id6471774666" target="_blank">
+      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white"
+           style="vertical-align: middle;" />
+  </a> | 
+  <a href="https://play.google.com/store/apps/details?id=kh.gov.nbc.bakong.tourist" target="_blank">
+      <img src="https://img.shields.io/badge/Google_Play-414141?style=flat&logo=google-play&logoColor=white"
+           style="vertical-align: middle;" />
+  </a>
+
+
 
 ## Requirement
 
@@ -289,6 +316,6 @@ If you would like to contribute to this project, please fork the repository and 
 For any questions or feedback, you can contact [ME](mailto:bansokthen@gmail.com) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
 
 <p align="center">
-        <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/khqr_riel.png" alt="KHQR Donation" width="auto" height="180" style="display: inline-block; margin-right: 10px;">
-        <img src="https://raw.githubusercontent.com/bsthen/bsthen/refs/heads/main/khqr_dollar.png" alt="KHQR Donation" width="auto" height="180" style="display: inline-block;">
+        <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/khqr_riel.png" alt="KHQR Donation" width="auto" height="180" style="display: inline-block; margin-right: 10px;">
+        <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/khqr_dollar.png" alt="KHQR Donation" width="auto" height="180" style="display: inline-block;">
 </p>
