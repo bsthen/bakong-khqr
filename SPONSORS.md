@@ -16,6 +16,6 @@ Your contributions help maintain and improve this open‑source project.
 
 ---
 
-> ℹ️ Names are listed with sponsor consent. If you wish to be anonymous or update your details, please contact the project me.
+> ℹ️ Names are listed with sponsor consent. If you wish to be anonymous or update your details, please contact me.
 
 💙 **Thank you for supporting bakong-khqr!**
