@@ -21,7 +21,7 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
     </a>
     <a href="https://socket.dev/pypi/package/bakong-khqr/" target="_blank">
-        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.4.17?artifact_id=tar-gz"
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.4.19?artifact_id=tar-gz"
              alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
