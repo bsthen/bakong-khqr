@@ -81,7 +81,7 @@ class ImageTools:
         except ImportError:
             raise ImportError('Image processing requires: pip install "bakong-khqr[image]"')
         
-        merchant_name_font = ImageFont.truetype(io.BytesIO(self.__regular_font), 16)
+        merchant_name_font = ImageFont.truetype(io.BytesIO(self.__regular_font), 18)
         bold_amount_font = ImageFont.truetype(io.BytesIO(self.__bold_font), 22)
         regular_currency_font = ImageFont.truetype(io.BytesIO(self.__regular_font), 14)
         
