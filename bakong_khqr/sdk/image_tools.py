@@ -172,21 +172,21 @@ class QRImageResult:
         self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.png")
-        self.image.save(path, format="PNG")
+        self.image.save(path, format="PNG", optimize=True, compress_level=9)
         return path
 
     def to_jpeg(self, path: str = None) -> str:
         self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.jpg")
-        self.image.convert("RGB").save(path, format="JPEG")
+        self.image.convert("RGB").save(path, format="JPEG", quality=95, subsampling=0, optimize=True)
         return path
 
     def to_webp(self, path: str = None) -> str:
         self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.webp")
-        self.image.save(path, format="WEBP")
+        self.image.save(path, format="WEBP", lossless=True)
         return path
 
     def to_bytes(self) -> bytes:
