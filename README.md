@@ -1,4 +1,4 @@
-<h1 align="center"> Bakong-KHQR (Unofficial) </h1>
+<h1 align="center"> Bakong-KHQR (Unofficial NBC) </h1>
 
 <p align="center">
 <a href="https://youtu.be/24bClwP3Tzo" target="_blank" >
