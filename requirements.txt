@@ -1,7 +1,3 @@
-setuptools
 python-dotenv
-requests
-twine
 qrcode
 pillow
-build
