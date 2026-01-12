@@ -37,7 +37,11 @@ class KHQR:
         self.__payload_format_indicator = PayloadFormatIndicator()
         self.__global_unique_identifier = GlobalUniqueIdentifier()
         self.__bakong_token = bakong_token
-        self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
+        # Set the API endpoint based on the provided token
+        if bakong_token and bakong_token.startswith("rbk"):
+            self.__bakong_api = "https://api.bakongrelay.com/v1"
+        else:
+            self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
         
     def __check_bakong_token(self):
         if not self.__bakong_token:
