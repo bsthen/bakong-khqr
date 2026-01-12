@@ -65,8 +65,8 @@ A Python package for generating payment transactions compliant with the Bakong K
 
 - Python3
 - A Bakong account with full KYC verification
-- A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register](https://api-bakong.nbc.gov.kh/register))
-- A VPS or hosting service located in Cambodia (a Cambodian IP address is recommended)
+- A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register/](https://api-bakong.nbc.gov.kh/register/) or RBK Token: [https://bakongrelay.com/](https://bakongrelay.com/))
+- A VPS or hosting service located in Cambodia or use RBK Token.
 
 ## Installation
 
@@ -290,6 +290,21 @@ print("QR image saved at:", png_path)
 - `output_path`: Optional path to save the image. If not provided, returns a temp file path.
 - `format`: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
 
+## ⭐️ Bakong Relay API Support (New in v0.5.*)
+### Why Use Bakong Relay? (Optional)
+
+Many developers face **HTTP 403 errors** when accessing Bakong APIs from servers outside Cambodia.
+
+This service allows you to use **RBK tokens** directly in `bakong-khqr` (Python SDK), so your application can reliably check transactions, accounts, and references without restrictions.
+
+**Important**: Only `bakong-khqr` (Python SDK) supports RBK tokens.
+
+Using Bakong Relay is **optional**.  
+If your server is in Cambodia or you have no access issues, you can continue using official Bakong tokens — no changes are needed.
+
+For more information, token creation, pricing, and full documentation, visit:  
+👉 **[bakongrelay.com](https://bakongrelay.com)**
+
 ## Bakong Official
 
 KHQR SDK Documentation:
@@ -323,4 +338,4 @@ For any questions or feedback, you can contact [ME](mailto:bansokthen@gmail.com)
 ## ❤️ Sponsors
 
 This project is supported by the community.  
-👉 [List Sponsors & Donors](SPONSORS.md)
+👉 [List Sponsors & Donors](https://github.com/bsthen/bakong-khqr/blob/main/SPONSORS.md)
