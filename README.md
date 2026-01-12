@@ -29,7 +29,7 @@ A Python package for generating payment transactions compliant with the Bakong K
     </a>
 </p>
 
-## Download Mobile App
+## 📱 Download Mobile App
 
 - <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/bakong_app.png"
        alt="Bakong App"
@@ -61,14 +61,14 @@ A Python package for generating payment transactions compliant with the Bakong K
 
 
 
-## Requirement
+## 📋 Requirement
 
 - Python3
 - A Bakong account with full KYC verification
 - A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register/](https://api-bakong.nbc.gov.kh/register/) or RBK Token: [https://bakongrelay.com/](https://bakongrelay.com/))
 - A VPS or hosting service located in Cambodia or use RBK Token.
 
-## Installation
+## 📦 Installation
 
 ```bash
 pip3 install bakong-khqr
@@ -80,7 +80,7 @@ or Update Last Version
 pip3 install --upgrade bakong-khqr
 ```
 
-## Usage
+## 🚀 Usage
 
 The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment, Get Payment transaction for Bakong KHQR.
 
@@ -290,7 +290,7 @@ print("QR image saved at:", png_path)
 - `output_path`: Optional path to save the image. If not provided, returns a temp file path.
 - `format`: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
 
-## ⭐️ Bakong Relay API Support (New in v0.5.*)
+## ✨ Bakong Relay API Support (New in v0.5.*)
 ### Why Use Bakong Relay? (Optional)
 
 Many developers face **HTTP 403 errors** when accessing Bakong APIs from servers outside Cambodia.
@@ -303,9 +303,9 @@ Using Bakong Relay is **optional**.
 If your server is in Cambodia or you have no access issues, you can continue using official Bakong tokens — no changes are needed.
 
 For more information, token creation, pricing, and full documentation, visit:  
-👉 **[bakongrelay.com](https://bakongrelay.com)**
+👉 **[bakongrelay.com](https://bakongrelay.com)** or **[Telegram Bot](https://t.me/bakong_relay_bot/)**
 
-## Bakong Official
+## 📄 Bakong Official
 
 KHQR SDK Documentation:
 
@@ -318,17 +318,17 @@ Development API: [https://sit-api-bakong.nbc.gov.kh/](https://sit-api-bakong.nbc
 
 Production API: [https://api-bakong.nbc.gov.kh/](https://api-bakong.nbc.gov.kh/)
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/bsthen/bakong-khqr/blob/main/LICENSE) file for details.
 
-## Contributing
+## 🤝 Contributing
 
 If you would like to contribute to this project, please fork the repository and submit a pull request.
 
-## Contact
+## 📬 Contact
 
-For any questions or feedback, you can contact [ME](mailto:bansokthen@gmail.com) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
+For any questions or feedback, you can contact me via [Mail](mailto:bansokthen@gmail.com), [Telegram](https://t.me/bakong_relay_support/) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
 
 <p align="center">
         <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen@main/khqr_riel.png" alt="KHQR Donation" width="auto" height="250" style="display: inline-block; margin-right: 10px;">
