@@ -18,7 +18,7 @@ class AdditionalDataField:
         self.__bill_number_length = emv.invalid_length_bill_number
         self.__terminal_label_length = emv.invalid_length_terminal_label
 
-    def __format_value(self, tag, value) -> str:
+    def __format_value(self, tag: str, value: str) -> str:
         """
         Helper method to format a tag-value pair with length prefix.
 
@@ -41,23 +41,29 @@ class AdditionalDataField:
         if len(value) > max_length:
             raise ValueError(f"{field_name} cannot exceed {max_length} characters. Your input length: {len(value)} characters.")
 
-    def __store_label_value(self, store_label) -> str:
+    def __store_label_value(self, store_label: str) -> str:
         self.__validate_length(store_label, self.__store_label_length, "Store label")
         return self.__format_value(self.__store_label_tag, store_label)
     
-    def __phone_number_value(self, phone_number) -> str:
-        self.__validate_length(phone_number, self.__mobile_number_length, "Phone number")
-        return self.__format_value(self.__mobile_number_tag, phone_number)
+    def __phone_number_value(self, phone_number: str) -> str:
+        digits = ''.join(c for c in phone_number if c.isdigit())
+        if digits.startswith('855'):
+            digits = digits[3:]
+        if not digits.startswith('0'):
+            digits = '0' + digits
+        
+        self.__validate_length(digits, self.__mobile_number_length, "Phone number")
+        return self.__format_value(self.__mobile_number_tag, digits)
     
-    def __bill_number_value(self, bill_number) -> str:
+    def __bill_number_value(self, bill_number: str) -> str:
         self.__validate_length(bill_number, self.__bill_number_length, "Bill number")
         return self.__format_value(self.__bill_number_tag, bill_number)
     
-    def __terminal_label_value(self, terminal_label) -> str:
+    def __terminal_label_value(self, terminal_label: str) -> str:
         self.__validate_length(terminal_label, self.__terminal_label_length, "Terminal label")
         return self.__format_value(self.__terminal_label_tag, terminal_label)
     
-    def value(self, store_label, phone_number, bill_number, terminal_label) -> str:
+    def value(self, store_label: str, phone_number: str, bill_number: str, terminal_label: str) -> str:
         """
         Combine all formatted values into a single string with a length prefix.
 
