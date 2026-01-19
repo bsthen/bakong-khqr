@@ -7,7 +7,7 @@ long_description = readme.read_text(encoding="utf-8")
 
 setup(
     name="bakong-khqr",
-    version="0.5.0",
+    version="0.5.1",
     author="BAN Sothen",
     author_email="bansokthen@gmail.com",
     description="A Python package for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC)",
@@ -16,8 +16,6 @@ setup(
     url="https://github.com/bsthen/bakong-khqr",
     packages=find_packages(exclude=["tests*"]),
     install_requires=[],
-    maintainer="BAN Sothen",
-    maintainer_email="bansokthen@gmail.com",
     extras_require={
         "image": ["pillow", "qrcode"]
     },
