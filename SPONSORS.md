@@ -7,12 +7,14 @@ Your contributions help maintain and improve this open‑source project.
 
 ## 🇰🇭 Bakong-KHQR Sponsors
 
-| Name           | Amount (KHR) |
-| -------------- | ------------ |
-| CHANTHORN EK   | 20,000 Riel  |
-| Moreta Pay     | 2,500 Riel   |
-| KIRIVUTH TIN   | 20,000 Riel  |
-| NASIET HUSLAVY | 600 Riel     |
+| Name           |
+| -------------- |
+| CHANTHORN EK   |
+| Moreta Pay     |
+| KIRIVUTH TIN   |
+| NASIET HUSLAVY |
+| THEARA KONG    |
+| RET SAROM      |
 
 ---
 
