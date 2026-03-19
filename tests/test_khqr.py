@@ -18,17 +18,20 @@ class TestKHQR(unittest.TestCase):
         
         # Create a QR code string
         qr = self.khqr.create_qr(
-            bank_account='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
-            merchant_name='Your Name',
-            merchant_city='Phnom Penh',
+            bank_account='your_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
+            merchant_name='Your Name', # Merchant name (e.g., Your Name)
+            merchant_city='Phnom Penh', # City name (e.g., Phnom Penh)
             amount=9800, #9800 Riel
             currency='KHR', # USD or KHR
-            store_label='MShop',
-            phone_number='85512345678',
-            bill_number='TRX01234567',
-            terminal_label='Cashier-01',
-            static=True # Static or Dynamic QR code (default: False)
+            store_label='Phsar Thmei', # Store label or transaction description (e.g., Buy Course)
+            phone_number='012345678', # Customer's phone number (e.g., 012345678). This is used for the "Pay by Phone Number" feature in the Bakong app.
+            bill_number='TRX012345', # Bill number or transaction reference (e.g., TRX019283775).
+            terminal_label='POS-01', # Terminal label or transaction description (e.g., Buy Course).
+            static=False, # Static or Dynamic QR code (default: False)
+            expiration=2 # Expiration time in 2 days for the QR code (default: 1 day). This is used to calculate the expiration time for the QR code.
         )
+        
+        print("QR Code Data:", qr)
         
         # Get Deeplink
         deeplink = self.khqr.generate_deeplink(

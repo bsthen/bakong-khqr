@@ -96,6 +96,7 @@ class KHQR:
         bill_number: str,
         terminal_label: str,
         static: Optional[bool] = False,
+        expiration: Optional[int] = 1
     ) -> str:
         """
         Create a QR code string based on provided information.
@@ -110,20 +111,21 @@ class KHQR:
         :param bill_number: Bill number or transaction reference (e.g., TRX019283775).
         :param terminal_label: Terminal label or transaction description (e.g., Buy Course).
         :param static: Static or Dynamic QR code (default: False).
+        :param expiration: Expiration time in days for the QR code (default: 1 day).
         :return: Generated QR code as a string.
         """
         qr_data = self.__payload_format_indicator.value()
         qr_data += self.__point_of_initiation.static() if static else self.__point_of_initiation.dynamic()
         qr_data += self.__global_unique_identifier.value(bank_account)
         qr_data += self.__mcc.value()
+        qr_data += self.__transaction_currency.value(currency)
+        if not static:
+            qr_data += self.__amount.value(amount)
         qr_data += self.__country_code.value()
         qr_data += self.__merchant_name.value(merchant_name)
         qr_data += self.__merchant_city.value(merchant_city)
-        if not static:
-            qr_data += self.__amount.value(amount)
-        qr_data += self.__transaction_currency.value(currency)
         qr_data += self.__additional_data_field.value(store_label, phone_number, bill_number, terminal_label)
-        qr_data += self.__timestamp.value()
+        qr_data += self.__timestamp.value(expiration)
         qr_data += self.__crc.value(qr_data)
         return qr_data
 

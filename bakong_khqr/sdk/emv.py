@@ -50,6 +50,7 @@ class EMV:
         
         # Language Preferences
         self.language_perference = "00"
+        self.language_perference_exp = "01"
         self.merchant_name_alternative_language = "01"
         self.merchant_city_alternative_language = "02"
         

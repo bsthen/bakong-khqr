@@ -21,7 +21,7 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
     </a>
     <a href="https://socket.dev/pypi/package/bakong-khqr/" target="_blank">
-        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.5.1?artifact_id=tar-gz"
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.5.2?artifact_id=tar-gz"
              alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
@@ -118,14 +118,15 @@ qr = khqr.create_qr(
     merchant_city='Phnom Penh',
     amount=9800, #9800 Riel
     currency='KHR', # USD or KHR
-    store_label='MShop',
-    phone_number='85512345678',
-    bill_number='TRX01234567',
-    terminal_label='Cashier-01',
-    static=False # Static or Dynamic QR code (default: False)
+    store_label='Phsar Thmei',
+    phone_number='012345678',
+    bill_number='TRX012345',
+    terminal_label='POS-01',
+    static=False, # Static or Dynamic QR code (default: False)
+    expiration=2 # Expiration time in 2 days for the QR code (default: 1 day). This is used to calculate the expiration time for the QR code.
 )
 print(qr)
-# String Result: 00020101021229180014user_name@bank520459995802KH5909Your Name6010Phnom Penh991700131724927295157541100000009800530311662610112TRX0192837750211855123456780305MShop0717Buy 1A_Level_Book63041087
+# String Result: 00020101021229180014your_name@bank520459995303116540498005802KH5909Your Name6010Phnom Penh62510109TRX01234502090123456780311Phsar Thmei0706POS-01993400131773894603019011317738947758196304A5A3
 
 # Generate Deeplink:
 deeplink = khqr.generate_deeplink(
@@ -237,7 +238,8 @@ qr = khqr.create_qr(
     phone_number='85512345678',
     bill_number='TRX123456',
     terminal_label='Cashier-01',
-    static=False
+    static=False,
+    expiration=1
 )
 
 # Generate QR image as PNG file path
@@ -258,6 +260,7 @@ print("QR image saved at:", png_path)
 - `bill_number`: Reference number for the bill.
 - `terminal_label`: Label for the terminal.
 - `static`: Static or Dynamic QR code (default: static = False).
+- `expiration`: Expiration time in days for the QR code (default: 1 day).
 
 `Note`: Using static mode will create a Static QR Code for payment, allowing unlimited transactions, usage, and a zero amount included.
 
