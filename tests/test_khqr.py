@@ -19,7 +19,7 @@ class TestKHQR(unittest.TestCase):
         # Create a QR code string
         qr = self.khqr.create_qr(
             bank_account='your_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
-            merchant_name='Your Name', # Merchant name (e.g., Your Name)
+            merchant_name='YOUR NAME', # Merchant name (e.g., Your Name)
             merchant_city='Phnom Penh', # City name (e.g., Phnom Penh)
             amount=9800, #9800 Riel
             currency='KHR', # USD or KHR
@@ -32,8 +32,7 @@ class TestKHQR(unittest.TestCase):
         )
         
         print("QR Code Data:", qr)
-        
-        # Get Deeplink
+        # Get Deeplink URL for the QR code
         deeplink = self.khqr.generate_deeplink(
             qr, 
             callback="https://bakong.nbc.org.kh", 

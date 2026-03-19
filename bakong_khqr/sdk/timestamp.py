@@ -4,6 +4,7 @@ import time
 # Initialize EMV instance
 emv = EMV()
 
+
 class TimeStamp:
     def __init__(self):
         """
@@ -13,41 +14,42 @@ class TimeStamp:
         self.__language_preference_exp = emv.language_perference_exp
         self.__timestamp_tag = emv.timestamp_tag
 
-    def value(self, exp: int = 1) -> str:
+    def value(self, static: bool, expiration: int = 1) -> str:
         """
         Generate the QR code data for the current timestamp.
+
         Parameters:
-        - exp (int): Expiration time in seconds (default: 1 Day or 24 hours). This is used to calculate the expiration time for the QR code.
+        - static (bool): Whether the QR code is static (True) or dynamic (False).
+        - expiration (int): Expiration time in days (default: 1 day). 
+                            Only used when static=False.
 
         Returns:
-        - str: Formatted QR code data including language preference, timestamp, and related tags.
+        - str: Formatted QR code data including language preference, timestamp, 
+               and expiration (for dynamic QR only).
         """
         
-        # check if exp is less than 1 day (24 hours)
-        if exp < 1:
-            raise ValueError("Expiration time cannot be less than 1 day. Your input: {exp} days.")
-        
-        # Convert expiration time from days to seconds
-        exp = exp * 86400
-        
-        # Get the current timestamp in milliseconds
+        # Get current timestamp in milliseconds
         timestamp = str(int(time.time() * 1000))
-        
-        expiration_time = str(int(time.time() * 1000) + exp)
-
-        # Format the length of the timestamp
         length_of_timestamp = str(len(timestamp)).zfill(2)
-        
-        # Format the length of the expiration time
-        length_of_expiration_time = str(len(expiration_time)).zfill(2)
 
-        # Create the initial result with language preference and timestamp
+        # Start building the result with language preference + timestamp
         result = f"{self.__language_preference}{length_of_timestamp}{timestamp}"
-        # Append the expiration time to the result
-        result += f"{self.__language_preference_exp}{length_of_expiration_time}{expiration_time}"
 
-        # Format the length of the result
+        # Only add expiration part for dynamic QR codes (static=False)
+        if not static:
+            if expiration < 1:
+                raise ValueError(f"Expiration time cannot be less than 1 day. Your input: {expiration} days.")
+            
+            # Convert expiration from days to milliseconds
+            exp_ms = expiration * 86400 * 1000
+            expiration_time = str(int(time.time() * 1000) + exp_ms)
+            length_of_expiration_time = str(len(expiration_time)).zfill(2)
+
+            # Append expiration section
+            result += f"{self.__language_preference_exp}{length_of_expiration_time}{expiration_time}"
+
+        # Format the total length of the result
         length_result = str(len(result)).zfill(2)
 
-        # Append the timestamp tag and formatted result
+        # Return final formatted string with timestamp tag
         return f"{self.__timestamp_tag}{length_result}{result}"
