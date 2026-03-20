@@ -20,6 +20,8 @@ class ImageTools:
         return usd_icon if currency == "USD" else khr_icon
 
     def __format_amount(self, amount: float, currency: str) -> str:
+        if amount <= 0:
+            return "0"
         # Format amount based on currency
         if currency.upper() == "USD":
             parts = f"{amount:,.2f}".split(".")
@@ -134,9 +136,10 @@ class ImageTools:
         # Draw amount
         draw.text((30, 110), amount_text, fill="black", font=bold_amount_font)
 
-        # Draw currency next to amount
-        currency_x = 30 + amount_width + 5
-        draw.text((currency_x, 118), currency, fill="black", font=regular_currency_font)
+        # Only draw currency when amount > 0
+        if amount > 0:
+            currency_x = 30 + amount_width + 5
+            draw.text((currency_x, 118), currency, fill="black", font=regular_currency_font)
 
 
         # Dashed line

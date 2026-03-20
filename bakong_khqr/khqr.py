@@ -114,6 +114,10 @@ class KHQR:
         :param expiration: Expiration time in days for the QR code (default: 1 day).
         :return: Generated QR code as a string.
         """
+        
+        if amount <= 0:
+            static = True
+        
         qr_data = self.__payload_format_indicator.value()
         qr_data += self.__point_of_initiation.static() if static else self.__point_of_initiation.dynamic()
         qr_data += self.__global_unique_identifier.value(bank_account)
