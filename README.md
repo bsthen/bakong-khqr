@@ -21,7 +21,7 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
     </a>
     <a href="https://socket.dev/pypi/package/bakong-khqr/" target="_blank">
-        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.5.3?artifact_id=tar-gz"
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.5.4?artifact_id=tar-gz"
              alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
@@ -331,7 +331,7 @@ If you would like to contribute to this project, please fork the repository and 
 
 ## 📬 Contact
 
-For any questions or feedback, you can contact me via [Mail](mailto:bansokthen@gmail.com), [Telegram](https://t.me/bakong_relay_support/) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
+For any questions or feedback, you can contact me via [Mail](mailto:bansokthen@gmail.com), [Telegram](https://t.me/bakongRelaySupport/) or [Buy Me A Coffee ☕️](https://buymeacoffee.com/bsthen)
 
 <p align="center">
         <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen@main/khqr_riel.png" alt="KHQR Donation" width="auto" height="250" style="display: inline-block; margin-right: 10px;">
