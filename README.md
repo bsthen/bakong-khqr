@@ -123,7 +123,7 @@ qr = khqr.create_qr(
     bill_number='TRX012345',
     terminal_label='POS-01',
     static=False, # Static or Dynamic QR code (default: False)
-    expiration=2 # Expiration time in 2 days for the QR code (default: 1 day). This is used to calculate the expiration time for the QR code.
+    expiration=1 # Expiration time in 1 day for the QR code (default: 1 day). This is used to calculate the expiration time for the QR code.
 )
 print(qr)
 # String Result: 00020101021229180014your_name@bank520459995303116540498005802KH5909Your Name6010Phnom Penh62510109TRX01234502090123456780311Phsar Thmei0706POS-01993400131773894603019011317738947758196304A5A3
@@ -255,12 +255,12 @@ print("QR image saved at:", png_path)
 - `merchant_city`: City where the merchant is located.
 - `amount`: Amount to be transacted.
 - `currency`: Currency of the transaction (e.g., 'USD', 'KHR').
-- `store_label (optional)`: Label or name of the store.
-- `phone_number (optional)`: Contact phone number.
-- `bill_number (optional)`: Reference number for the bill.
-- `terminal_label (optional)`: Label for the terminal.
-- `static`: Static or Dynamic QR code (default: static = False).
-- `expiration`: Expiration time in days for the QR code (default: 1 day).
+- `store_label` (optional): Label or name of the store.
+- `phone_number` (optional): Contact phone number.
+- `bill_number` (optional): Reference number for the bill.
+- `terminal_label` (optional): Label for the terminal.
+- `static` (optional): Static or Dynamic QR code (default: static = False).
+- `expiration` (optional): Expiration time in days for the QR code (default: 1 day).
 
 `Note`: Using static mode will create a Static QR Code for payment, allowing unlimited transactions, usage, and a zero amount included.
 
