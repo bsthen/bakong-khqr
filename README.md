@@ -255,10 +255,10 @@ print("QR image saved at:", png_path)
 - `merchant_city`: City where the merchant is located.
 - `amount`: Amount to be transacted.
 - `currency`: Currency of the transaction (e.g., 'USD', 'KHR').
-- `store_label`: Label or name of the store.
-- `phone_number`: Contact phone number.
-- `bill_number`: Reference number for the bill.
-- `terminal_label`: Label for the terminal.
+- `store_label (optional)`: Label or name of the store.
+- `phone_number (optional)`: Contact phone number.
+- `bill_number (optional)`: Reference number for the bill.
+- `terminal_label (optional)`: Label for the terminal.
 - `static`: Static or Dynamic QR code (default: static = False).
 - `expiration`: Expiration time in days for the QR code (default: 1 day).
 
