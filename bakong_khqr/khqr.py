@@ -91,10 +91,10 @@ class KHQR:
         merchant_city: str,
         amount: float,
         currency: str,
-        store_label: str,
-        phone_number: str,
-        bill_number: str,
-        terminal_label: str,
+        store_label: Optional[str] = None,
+        phone_number: Optional[str] = None,
+        bill_number: Optional[str] = None,
+        terminal_label: Optional[str] = None,
         static: Optional[bool] = False,
         expiration: Optional[int] = 1
     ) -> str:
@@ -106,10 +106,10 @@ class KHQR:
         :param merchant_city: City of the merchant (e.g., Phnom Penh).
         :param amount: Transaction amount (e.g., 1.09).
         :param currency: Currency code (e.g., USD or KHR).
-        :param store_label: Store label or merchant reference (e.g., Shop A).
-        :param phone_number: Mobile number of the merchant (e.g., 85512345678).
-        :param bill_number: Bill number or transaction reference (e.g., TRX019283775).
-        :param terminal_label: Terminal label or transaction description (e.g., Buy Course).
+        :param store_label: (Optional) Store label or merchant reference (e.g., Shop A).
+        :param phone_number: (Optional) Mobile number of the merchant (e.g., 85512345678).
+        :param bill_number: (Optional) Bill number or transaction reference (e.g., TRX019283775).
+        :param terminal_label: (Optional) Terminal label or transaction description (e.g., Buy Course).
         :param static: Static or Dynamic QR code (default: False).
         :param expiration: Expiration time in days for the QR code (default: 1 day).
         :return: Generated QR code as a string.
@@ -128,7 +128,14 @@ class KHQR:
         qr_data += self.__country_code.value()
         qr_data += self.__merchant_name.value(merchant_name)
         qr_data += self.__merchant_city.value(merchant_city)
-        qr_data += self.__additional_data_field.value(store_label, phone_number, bill_number, terminal_label)
+        additional_data = self.__additional_data_field.value(
+            store_label=store_label,
+            phone_number=phone_number,
+            bill_number=bill_number,
+            terminal_label=terminal_label,
+        )
+        if additional_data:
+            qr_data += additional_data
         qr_data += self.__timestamp.value(static, expiration)
         qr_data += self.__crc.value(qr_data)
         return qr_data
