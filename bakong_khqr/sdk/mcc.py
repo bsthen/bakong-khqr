@@ -11,7 +11,7 @@ class MCC:
         self.__merchant_category_code_tag = emv.merchant_category_code
         self.__default_merchant_category_code = emv.default_merchant_category_code
 
-    def value(self, category_code: str = None) -> str:
+    def value(self, category_code: str | None = None) -> str:
         """
         Construct and retrieve the merchant category code value with its length.
 

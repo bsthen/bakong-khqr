@@ -7,7 +7,7 @@ class CountryCode:
         self.__country_code_tag = emv.country_code
         self.__default_country_code = emv.default_country_code
         
-    def value(self, country_code: str = None) -> str:
+    def value(self, country_code: str | None = None) -> str:
         """
         Get the formatted country code value.
 

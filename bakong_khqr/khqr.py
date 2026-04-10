@@ -1,8 +1,8 @@
 import json
 import http.client
+from typing import Any
 from urllib.parse import urlparse
-from typing import Optional
-
+from contextlib import closing
 
 from .sdk.crc import CRC
 from .sdk.mcc import MCC
@@ -21,7 +21,7 @@ from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 
 from .sdk.version import __version__
 class KHQR:
-    def __init__(self, bakong_token: str = None):
+    def __init__(self, bakong_token: str | None = None):
         self.__crc = CRC()
         self.__mcc = MCC()
         self.__hash = HASH()
@@ -47,42 +47,54 @@ class KHQR:
         if not self.__bakong_token:
             raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
 
-    def __post_request(self, endpoint: str, payload: dict) -> dict:
-        self.__check_bakong_token()  # Check if Bakong Developer Token is provided
+    def __post_request(self, endpoint: str, payload: dict[str, Any] | list[Any]) -> dict[str, Any]:
+        self.__check_bakong_token()
         
         parsed_url = urlparse(self.__bakong_api)
-        conn = http.client.HTTPSConnection(parsed_url.netloc)
-        
-        headers = {
-            "Authorization": f"Bearer {self.__bakong_token}",
-            "Content-Type": "application/json",
-            "User-Agent": f"bakong-khqr/{__version__} (+https://github.com/bsthen/bakong-khqr); Mozilla/5.0"
-        }
+        # Using 'with' or closing ensures the socket closes even if an error occurs
+        with closing(http.client.HTTPSConnection(parsed_url.netloc, timeout=10)) as conn:
+            headers = {
+                "Authorization": f"Bearer {self.__bakong_token}",
+                "Content-Type": "application/json",
+                "User-Agent": f"bakong-khqr/{__version__} (+https://github.com/bsthen/bakong-khqr)"
+            }
 
-        full_path = f"{parsed_url.path}{endpoint}"  # Ensure correct path formatting
-        conn.request("POST", full_path, body=json.dumps(payload), headers=headers)
-        
-        response = conn.getresponse()
-        response_data = response.read().decode()
+            full_path = f"{parsed_url.path}{endpoint}".replace("//", "/")
+            
+            try:
+                conn.request("POST", full_path, body=json.dumps(payload), headers=headers)
+                response = conn.getresponse()
+                response_data = response.read().decode()
+                
+            except TimeoutError:
+                raise ValueError("Bakong API took too long to respond. Please check transaction status later.")
+            
+            except Exception as e:
+                raise ValueError(f"Failed to connect to Bakong API: {e}")
 
-        if response.status == 200:
-            return json.loads(response_data)
-        elif response.status == 400:
-            raise ValueError("Bad request. Please check your input parameters and try again.")
-        elif response.status == 401:
-            raise ValueError("Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.")
-        elif response.status == 403:
-            raise ValueError("Bakong API only accepts requests from Cambodia IP addresses. Your IP may be blocked or restricted.")
-        elif response.status == 404:
-            raise ValueError("The requested Bakong API endpoint does not exist. Please check the endpoint URL.")
-        elif response.status == 429:
-            raise ValueError("Too many requests. Please wait a while before trying again.")
-        elif response.status == 500:
-            raise ValueError("Bakong server encountered an internal error. Please try again later.")
-        elif response.status == 504:
-            raise ValueError("Bakong server is busy, please try again later.")
-        else:
-            raise ValueError(f"Something went wrong. HTTP {response.status}: {response_data}")
+            # Handle specific status codes
+            if response.status == 200:
+                try:
+                    data = json.loads(response_data)
+                    if not isinstance(data, dict):
+                        raise ValueError("API returned valid JSON but it is not a dictionary.")
+                    return data
+                except json.JSONDecodeError:
+                    raise ValueError(f"Bakong returned invalid JSON: {response_data}")
+            
+            # Mapping statuses to messages
+            errors = {
+                400: "Bad request. Please check your input parameters and try again.",
+                401: "Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",
+                403: "Bakong API only accepts requests from Cambodia IP addresses. Your IP may be blocked or restricted.",
+                404: "The requested Bakong API endpoint does not exist. Please check the endpoint URL.",
+                429: "Too many requests. Please wait a while before trying again.",
+                500: "Bakong server encountered an internal error. Please try again later.",
+                504: "Bakong server is busy, please try again later."
+            }
+            
+            msg = errors.get(response.status, f"HTTP {response.status}: {response_data}")
+            raise ValueError(msg)
     
     def create_qr(
         self,
@@ -91,12 +103,12 @@ class KHQR:
         merchant_city: str,
         amount: float,
         currency: str,
-        store_label: Optional[str] = None,
-        phone_number: Optional[str] = None,
-        bill_number: Optional[str] = None,
-        terminal_label: Optional[str] = None,
-        static: Optional[bool] = False,
-        expiration: Optional[int] = 1
+        store_label: str | None = None,
+        phone_number: str | None = None,
+        bill_number: str | None = None,
+        terminal_label: str | None = None,
+        static: bool = False,
+        expiration: int = 1
     ) -> str:
         """
         Create a QR code string based on provided information.
@@ -158,7 +170,7 @@ class KHQR:
         callback: str = "https://bakong.nbc.org.kh", 
         appIconUrl: str = "https://bakong.nbc.gov.kh/images/logo.svg", 
         appName: str = "MyAppName"
-        ) -> str:
+        ) -> str | None:
         """
         Generate a deep link for the QR code.
 
@@ -179,7 +191,12 @@ class KHQR:
         }
         
         response = self.__post_request("/generate_deeplink_by_qr", payload)
-        return response.get("data", {}).get("shortLink", None) if response.get("responseCode") == 0 else None
+        
+        if response.get("responseCode") == 0:
+            data = response.get("data")
+            if isinstance(data, dict):
+                return data.get("shortLink")
+        return None
     
     def check_payment(
         self, 
@@ -197,12 +214,16 @@ class KHQR:
         }
         
         response = self.__post_request("/check_transaction_by_md5", payload)
-        return "PAID" if response.get("responseCode") == 0 else "UNPAID"
+        
+        if response.get("responseCode") == 0:
+            return "PAID"
+        
+        return "UNPAID"
     
     def get_payment(
         self, 
         md5: str
-        ) -> str:
+        ) -> dict[str, Any] | None:
         """
         Retrieve information about a paid transaction based on MD5 hash.
 
@@ -215,7 +236,11 @@ class KHQR:
         }
         
         response = self.__post_request("/check_transaction_by_md5", payload)
-        return response.get("data", None) if response.get("responseCode") == 0 else None
+        
+        if response.get("responseCode") == 0:
+            data = response.get("data")
+            return data if isinstance(data, dict) else None
+        return None
     
     def check_bulk_payments(
         self,
@@ -232,13 +257,25 @@ class KHQR:
             raise ValueError("The md5_list exceeds the allowed limit of 50 hashes per request.")
 
         response = self.__post_request("/check_transaction_by_md5_list", md5_list)
-        return [data["md5"] for data in response.get("data", []) if data.get("status") == "SUCCESS"]
+        
+        data_list = response.get("data")
+        if not isinstance(data_list, list):
+            return []
+        
+        paid_hashes = []
+        for item in data_list:
+            if isinstance(item, dict) and item.get("status") == "SUCCESS":
+                md5 = item.get("md5")
+                if isinstance(md5, str):
+                    paid_hashes.append(md5)
+        
+        return paid_hashes
     
     def qr_image(
         self, qr: str,
         format: str = "png",
-        output_path: str = None,
-        ) -> str:
+        output_path: str | None = None,
+        ) -> str | bytes:
         """
         Generate a styled KHQR image from the QR string.
 

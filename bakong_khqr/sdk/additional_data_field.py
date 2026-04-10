@@ -1,5 +1,3 @@
-from typing import Optional
-
 from .emv import EMV
 
 # Initialize EMV instance
@@ -43,10 +41,10 @@ class AdditionalDataField:
     
     def value(
         self,
-        store_label: Optional[str] = None,
-        phone_number: Optional[str] = None,
-        bill_number: Optional[str] = None,
-        terminal_label: Optional[str] = None,
+        store_label: str | None = None,
+        phone_number: str | None = None,
+        bill_number: str | None = None,
+        terminal_label: str | None = None,
         ) -> str:
         """
         Combine all formatted values into a single string with a length prefix.

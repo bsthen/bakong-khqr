@@ -3,7 +3,14 @@ import io
 import base64
 import tempfile
 from importlib import resources
+from typing import cast, TYPE_CHECKING, Tuple
+
 from .emv_parser import EMVParser
+
+if TYPE_CHECKING:
+    from PIL import Image, ImageDraw
+else:
+    pass
 
 class ImageTools:
     def __init__(self):
@@ -14,7 +21,7 @@ class ImageTools:
         self.__khr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("KHR.png").read_bytes()
         self.__khqr_icon = resources.files("bakong_khqr.sdk.assets").joinpath("khqr.png").read_bytes()
     
-    def __get_currency_icon(self, amount: float, currency: str, usd_icon, khr_icon, khqr_icon):
+    def __get_currency_icon(self, amount: float, currency: str, usd_icon: "Image.Image", khr_icon: "Image.Image", khqr_icon: "Image.Image"):
         if amount <= 0:
             return khqr_icon
         return usd_icon if currency == "USD" else khr_icon
@@ -30,7 +37,7 @@ class ImageTools:
         else:
             return f"{amount:,.2f}"
         
-    def __draw_red_corner(self, draw, width, height, fold_size=40, color="#cc0000"):
+    def __draw_red_corner(self, draw: "ImageDraw.ImageDraw", width: int, height: int, fold_size: int = 40, color: str ="#cc0000"):
     # Top-right triangle (fold)
         triangle = [
             (width - fold_size, 0),       # top edge left of corner
@@ -40,7 +47,7 @@ class ImageTools:
         draw.polygon(triangle, fill=color)
 
 
-    def __add_rounded_corners(self, image, radius):
+    def __add_rounded_corners(self, image: "Image.Image", radius: float):
         try:
             from PIL import Image, ImageDraw
         except ImportError:
@@ -57,10 +64,14 @@ class ImageTools:
         rounded.paste(image, (0, 0), mask)
         return rounded
 
-    def __draw_dashed_line(self, draw, start, end, dash_length=5, gap_length=5, fill="black", width=1):
+    def __draw_dashed_line(self, draw: "ImageDraw.ImageDraw", start: Tuple[float, float], end: Tuple[float, float], dash_length: int = 5, gap_length: int = 5, fill: str = "black", width: int = 1):
         x1, y1 = start
         x2, y2 = end
+        
         total_length = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+        if total_length == 0:
+            return
+        
         dx = (x2 - x1) / total_length
         dy = (y2 - y1) / total_length
 
@@ -68,10 +79,14 @@ class ImageTools:
         while drawn < total_length:
             x_start = x1 + dx * drawn
             y_start = y1 + dy * drawn
+            
             drawn += dash_length
+            
             x_end = x1 + dx * min(drawn, total_length)
             y_end = y1 + dy * min(drawn, total_length)
+            
             draw.line([(x_start, y_start), (x_end, y_end)], fill=fill, width=width)
+            
             drawn += gap_length
     
     def generate(self, qr_string):
@@ -80,6 +95,8 @@ class ImageTools:
             from PIL import Image, ImageDraw, ImageFont
             import qrcode
             import qrcode.constants
+            from PIL import Image
+            from qrcode.image.pil import PilImage
         except ImportError:
             raise ImportError('Image processing requires: pip install "bakong-khqr[image]"')
         
@@ -100,12 +117,19 @@ class ImageTools:
         currency = "USD" if currency_code == "840" else "KHR"
         
         # Step 1: Generate QR code
-        qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L,
-                        box_size=10, border=4)
+        qr = qrcode.QRCode(
+            version=1,
+            border=4,
+            box_size=10,
+            error_correction=qrcode.constants.ERROR_CORRECT_M
+        )
+        
         qr.add_data(qr_string)
-        qr.make()
-        qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-        qr_img = qr_img.resize((280, 280))
+        qr.make(fit=True)
+        qr_img = qr.make_image(image_factory=PilImage, fill_color="black", back_color="white")
+        qr_img = cast(Image.Image, qr_img)
+        qr_img = qr_img.convert('RGB')
+        qr_img = qr_img.resize((280, 280), Image.Resampling.LANCZOS)
 
         # Step 2: Create template image
         width, height = 300, 450
@@ -160,9 +184,10 @@ class ImageTools:
 
         # Return wrapped result
         return QRImageResult(rounded_img)
-    
+
 class QRImageResult:
-    def __init__(self, image):
+    
+    def __init__(self, image: "Image.Image"):
         self.image = image
 
     def __require_pillow(self):
@@ -171,21 +196,21 @@ class QRImageResult:
         except ImportError:
             raise ImportError('Image processing requires: pip install "bakong-khqr[image]"')
 
-    def to_png(self, path: str = None) -> str:
+    def to_png(self, path: str | None = None) -> str:
         self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.png")
         self.image.save(path, format="PNG", optimize=True, compress_level=9)
         return path
 
-    def to_jpeg(self, path: str = None) -> str:
+    def to_jpeg(self, path: str | None = None) -> str :
         self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.jpg")
         self.image.convert("RGB").save(path, format="JPEG", quality=95, subsampling=0, optimize=True)
         return path
 
-    def to_webp(self, path: str = None) -> str:
+    def to_webp(self, path: str | None = None) -> str:
         self.__require_pillow()
         if path is None:
             path = os.path.join(tempfile.gettempdir(), "khqr_image.webp")
