@@ -140,7 +140,7 @@ class ImageTools:
         draw.rectangle([(0, 0), (width, 60)], fill=(204, 0, 0))
 
         # KHQR logo
-        khqr_logo = bakong_logo.resize((90, 21))
+        khqr_logo = bakong_logo.resize((90, 21), Image.Resampling.LANCZOS)
         img.paste(khqr_logo, (width // 2 - 40, 20), khqr_logo)
 
         # Merchant name, amount, currency with loaded fonts
@@ -175,7 +175,7 @@ class ImageTools:
         # Currency icon
         currency_icon = self.__get_currency_icon(amount, currency, usd_icon, khr_icon, khqr_icon)
             
-        currency_icon = currency_icon.resize((40, 40))
+        currency_icon = currency_icon.resize((40, 40), Image.Resampling.LANCZOS)
         img.paste(currency_icon, (width // 2 - 20, 280), currency_icon)
 
         # Draw red corner & round corners
