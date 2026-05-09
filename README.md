@@ -112,7 +112,7 @@ from bakong_khqr import KHQR
 khqr = KHQR("eyJhbGciOiJIUzI1NiIsI...nMhgG87BWeDg9Lu-_CKe1SMqC0")
 
 # Generate QR code data for a transaction:
-qr = khqr.create_qr(
+qr_string = khqr.create_qr(
     bank_account='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
     merchant_name='Your Name',
     merchant_city='Phnom Penh',
@@ -125,13 +125,13 @@ qr = khqr.create_qr(
     static=False, # Static or Dynamic QR code (default: False)
     expiration=1 # Expiration time in 1 day for the QR code (default: 1 day). This is used to calculate the expiration time for the QR code.
 )
-print(qr)
+print(qr_string)
 # String Result: 00020101021229180014your_name@bank520459995303116540498005802KH5909Your Name6010Phnom Penh62510109TRX01234502090123456780311Phsar Thmei0706POS-01993400131773894603019011317738947758196304A5A3
 
 # Generate Deeplink:
 deeplink = khqr.generate_deeplink(
-    qr,
-    callback="https://your_website.com/shop/details?q=ABC", # Or your app's custom scheme (e.g., mshop://purchase/39482)
+    qr=qr_string,
+    appDeepLinkCallback="https://your_website.com/shop/details?q=ABC", # Or your app's custom scheme (e.g., mshop://purchase/39482)
     appIconUrl="https://your_website.com/images/logo.png", # Your logo image .png or .svg
     appName="MyAppName" # (e.g., MSHOP)
 )
@@ -139,7 +139,7 @@ print(deeplink)
 # String Result: https://bakong.page.link/CgXb....ks6az9a38
 
 # Get Hash MD5
-md5 = khqr.generate_md5(qr)
+md5 = khqr.generate_md5(qr_string)
 print(md5)
 # String Result: dfcabf4598d1c405a75540a3d4ca099d
 
@@ -267,9 +267,12 @@ print("QR image saved at:", png_path)
 #### Parameters for `generate_deeplink()` Method
 
 - `qr`: Valid QR Code data as string that generate from create_qr() method.
-- `callback`: Deeplink URL for opening your app after payment is completed.
+- `appDeepLinkCallback`: Deeplink URL for opening your app after payment is completed.
 - `appIconUrl`: Your App Icon URL.
 - `appName`: Your App Name.
+
+    ***Deprecation Note***: The parameter `callback` has been renamed to `appDeepLinkCallback` to align with the Bakong standard. While `callback` still works in the current version for backward compatibility, it will be removed in future releases. Please update your implementation.
+
 
 #### Parameters for `generate_md5()` Method
 

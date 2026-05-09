@@ -1,4 +1,5 @@
 import json
+import warnings
 import http.client
 from typing import Any
 from urllib.parse import urlparse
@@ -111,20 +112,23 @@ class KHQR:
         expiration: int = 1
     ) -> str:
         """
-        Create a QR code string based on provided information.
+        Create a KHQR string compliant with the Bakong system.
 
-        :param bank_account: Bank account information from Bakong profile (e.g., your_name@bank).
-        :param merchant_name: Name of the merchant (e.g., Your Name).
-        :param merchant_city: City of the merchant (e.g., Phnom Penh).
-        :param amount: Transaction amount (e.g., 1.09).
-        :param currency: Currency code (e.g., USD or KHR).
-        :param store_label: (Optional) Store label or merchant reference (e.g., Shop A).
-        :param phone_number: (Optional) Mobile number of the merchant (e.g., 85512345678).
-        :param bill_number: (Optional) Bill number or transaction reference (e.g., TRX019283775).
-        :param terminal_label: (Optional) Terminal label or transaction description (e.g., Buy Course).
-        :param static: Static or Dynamic QR code (default: False).
-        :param expiration: Expiration time in days for the QR code (default: 1 day).
-        :return: Generated QR code as a string.
+        Args:
+            bank_account (str): Bank account ID from Bakong (e.g., 'your_name@bank').
+            merchant_name (str): Name of the merchant (e.g., 'Your Name').
+            merchant_city (str): City of the merchant (e.g., 'Phnom Penh').
+            amount (float | int): Transaction amount.
+            currency (str): Currency code, either 'USD' or 'KHR'.
+            store_label (str, optional): Store label or ID.
+            phone_number (str, optional): Merchant's mobile number (e.g., '85512345678').
+            bill_number (str, optional): Unique bill or transaction reference.
+            terminal_label (str, optional): Terminal ID or a short description.
+            static (bool): Set to **True** for a static QR (no amount); Defaults to **False** (Dynamic).
+            expiration (int): Expiration time in days. Defaults to 1 day.
+
+        Returns:
+            str: A formatted EMVCo-compliant KHQR string.
         """
         
         if amount <= 0:
@@ -159,34 +163,71 @@ class KHQR:
         """
         Generate an MD5 hash for the QR code.
 
-        :param qr: QR code string generated from create_qr() method.
-        :return: MD5 hash as a string (32 characters).
+        This hash is used as a unique identifier to check transaction 
+        statuses via the Bakong API.
+
+        Args:
+            qr (str): QR code string generated from the `create_qr()` method.
+
+        Returns:
+            str: The 32-character MD5 hash string.
         """
         return self.__hash.md5(qr)
     
     def generate_deeplink(
         self, 
         qr: str, 
-        callback: str = "https://bakong.nbc.org.kh", 
+        appDeepLinkCallback: str | None = None, 
         appIconUrl: str = "https://bakong.nbc.gov.kh/images/logo.svg", 
-        appName: str = "MyAppName"
-        ) -> str | None:
+        appName: str = "MyAppName",
+        callback: str | None = None # Deprecated parameter
+    ) -> str | None:
         """
-        Generate a deep link for the QR code.
+        Generate a deep link for the KHQR.
 
-        :param qr: QR code string generated from create_qr() method.
-        :param callback: Callback URL for the deep link (default: https://bakong.nbc.org.kh).
-        :param appIconUrl: App icon URL of your app or website (default: https://bakong.nbc.gov.kh/images/logo.svg).
-        :param appName: Name of your app or website (default: MyAppName).
-        :return: Deep link URL as a string.
+        .. deprecated:: 0.5.7
+            The `callback` parameter is deprecated. Use `appDeepLinkCallback` 
+            to align with the National Bank of Cambodia (NBC) standard.
+
+        Args:
+            qr (str): QR code string generated from `create_qr()` method.
+            appDeepLinkCallback (str, optional): The standard callback URL. 
+                Defaults to "https://bakong.nbc.org.kh".
+            appIconUrl (str, optional): URL for the app icon.
+                Defaults to "https://bakong.nbc.gov.kh/images/logo.svg".
+            appName (str, optional): Name of the application.
+                Defaults to "MyAppName".
+            callback (str, optional): **Deprecated alias** for appDeepLinkCallback.
+
+        Returns:
+            str | None: The generated Bakong short-link URL or None if failed.
         """
-        
+
+        # Handle Deprecation Logic
+        if callback is not None:
+            warnings.warn(
+                f"\n\n{'!'*31} DEPRECATION WARNING {'!'*31}\n"
+                f"Parameter 'callback' is deprecated in bakong-khqr.\n"
+                f"Please update your code to use 'appDeepLinkCallback' instead.\n"
+                f"Example: deeplink = khqr.generate_deeplink(qr=qr_string, appDeepLinkCallback='...') \n"
+                f"{'!'*83}\n",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            # Use 'callback' value only if the new param wasn't provided
+            if appDeepLinkCallback is None:
+                appDeepLinkCallback = callback
+
+        # Set default if neither was provided
+        if appDeepLinkCallback is None:
+            appDeepLinkCallback = "https://bakong.nbc.org.kh"
+
         payload = {
             "qr": qr,
             "sourceInfo": {
                 "appIconUrl": appIconUrl,
                 "appName": appName,
-                "appDeepLinkCallback": callback
+                "appDeepLinkCallback": appDeepLinkCallback
             }
         }
         
@@ -203,10 +244,17 @@ class KHQR:
         md5: str
         ) -> str:
         """
-        Check the transaction status based on the MD5 hash.
+        Check the payment status of a transaction by its MD5 hash.
 
-        :param md5: MD5 hash of the QR code generated from generate_md5() method.
-        :return: Transaction status as a string (PAID or UNPAID).
+        Args:
+            md5 (str): The MD5 hash of the QR code generated via `generate_md5()`.
+            
+        Returns:
+            str: The transaction status. Common values are `PAID` or `UNPAID`.
+        
+        Note:
+            A status of **UNPAID** may indicate that the transaction is still pending 
+            or that the QR code has not been scanned yet.
         """
         
         payload = {
@@ -225,10 +273,16 @@ class KHQR:
         md5: str
         ) -> dict[str, Any] | None:
         """
-        Retrieve information about a paid transaction based on MD5 hash.
+        Retrieve details for a specific paid transaction using its MD5 hash.
 
-        :param md5: MD5 hash of the QR code generated from generate_md5() method.
-        :return: A dictionary (object) containing the transaction information if paid, or None if the transaction is not paid.
+        Args:
+            md5 (str): The MD5 hash of the QR code, typically generated 
+                via the `generate_md5()` method.
+        
+        Returns:
+            dict[str, Any] | None: A dictionary containing transaction details 
+                (e.g., amount, currency, sender) if the payment is successful. 
+                Returns `None` if the transaction is pending or not found.
         """
         
         payload = {
@@ -247,11 +301,19 @@ class KHQR:
         md5_list: list[str]
     ) -> list[str]:
         """
-        Check the transaction status based on the list of MD5 hashes.
+        Check the transaction status for multiple MD5 hashes.
 
-        :param md5_list: List of MD5 hashes generated from generate_md5() method.
-        :return: md5 list of paid transactions.
-        :raises ValueError: If the md5_list exceeds 50 items.
+        Args:
+            md5_list (list[str]): A list of MD5 hashes to verify. 
+                Each hash should be generated using the `generate_md5()` method.
+
+        Returns:
+            list[str]: A list containing only the MD5 hashes of transactions 
+                that have been confirmed as paid.
+
+        Raises:
+            ValueError: If the `md5_list` contains more than 50 items, 
+                as per Bakong's API limits.
         """
         if len(md5_list) > 50:
             raise ValueError("The md5_list exceeds the allowed limit of 50 hashes per request.")
@@ -279,11 +341,20 @@ class KHQR:
         """
         Generate a styled KHQR image from the QR string.
 
-        :param qr: QR string to convert into an image (from create_qr()).
-        :param output_path: Optional path to save the image. If not provided, returns a temp file path.
-        :param format: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
-        :return: File path of the generated image.
-        :raises ImportError: If Pillow or qrcode libraries are missing.
+        Args:
+            qr (str): The KHQR string generated from the `create_qr()` method.
+            output_path (str, optional): The file path where the image will be saved. 
+                If not provided, the method returns a temporary file path or data.
+            format (str): The export format. Supported: 'png', 'jpeg', 'webp', 
+                'bytes', 'base64', or 'base64_uri'. Defaults to 'png'.
+
+        Returns:
+            str | bytes: The file path (str) if saved to disk, or the raw data 
+                (bytes/base64 string) depending on the requested format.
+
+        Raises:
+            ImportError: If the required imaging libraries (Pillow/qrcode) are not installed.
+            ValueError: If an unsupported format is requested.
         """
 
         result = self.__image_tools.generate(qr)

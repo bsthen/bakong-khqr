@@ -35,7 +35,7 @@ class TestKHQR(unittest.TestCase):
         # Get Deeplink URL for the QR code
         deeplink = self.khqr.generate_deeplink(
             qr, 
-            callback="https://bakong.nbc.org.kh", 
+            appDeepLinkCallback="https://bakong.nbc.org.kh", 
             appIconUrl="https://bakong.nbc.gov.kh/images/logo.svg", 
             appName="MyAppName"
         )
