@@ -7,13 +7,13 @@ long_description = readme.read_text(encoding="utf-8")
 
 setup(
     name="bakong-khqr",
-    version="0.5.8",
+    version="2.5.8",
     author="BAN Sothen",
-    author_email="bansokthen@gmail.com",
+    author_email="khmersmpstore@gmail.com",
     description="A Python package for generating payment transactions compliant with the Bakong KHQR standard. (Unofficial NBC)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/bsthen/bakong-khqr",
+    url="https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments",
     packages=find_packages(exclude=["tests*"]),
     install_requires=[],
     extras_require={
