@@ -18,7 +18,7 @@ class TestKHQR(unittest.TestCase):
         
         # Create a QR code string
         qr = self.khqr.create_qr(
-            bank_account='your_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
+            account_id='your_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
             merchant_name='YOUR NAME', # Merchant name (e.g., Your Name)
             merchant_city='Phnom Penh', # City name (e.g., Phnom Penh)
             amount=9800, #9800 Riel
@@ -88,8 +88,8 @@ class TestKHQR(unittest.TestCase):
         
         # get web checkout data
         web_checkout_data = self.khqr.get_webcheckout("pQOjrGGv1Xkr")
-        print("Web Checkout Data:", web_checkout_data)
         # check web checkout payment data
+        print("Web Checkout Data:", web_checkout_data)
 
 if __name__ == '__main__':
     unittest.main()

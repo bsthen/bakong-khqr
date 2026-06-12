@@ -106,47 +106,69 @@ class KHQR:
             
             msg = errors.get(response.status, f"HTTP {response.status}: {response_data}")
             raise ValueError(msg)
-    
+
     def create_qr(
         self,
-        bank_account: str,
-        merchant_name: str,
-        merchant_city: str,
-        amount: float,
-        currency: str,
+        account_id: str | None = None,
+        merchant_name: str | None = None,
+        merchant_city: str | None = None,
+        amount: float = 0.0,
+        currency: str | None = None,
         store_label: str | None = None,
         phone_number: str | None = None,
         bill_number: str | None = None,
         terminal_label: str | None = None,
         static: bool = False,
-        expiration: int = 1
+        expiration: int = 1,
+        **kwargs
     ) -> str:
         """
         Create a KHQR string compliant with the Bakong system.
 
         Args:
-            bank_account (str): Bank account ID from Bakong (e.g., 'your_name@bank').
+            account_id (str): The recipient Bakong Account ID (e.g., 'your_name@bank').
             merchant_name (str): Name of the merchant (e.g., 'Your Name').
             merchant_city (str): City of the merchant (e.g., 'Phnom Penh').
             amount (float | int): Transaction amount.
             currency (str): Currency code, either 'USD' or 'KHR'.
             store_label (str, optional): Store label or ID.
-            phone_number (str, optional): Merchant's mobile number (e.g., '85512345678').
+            phone_number (str, optional): Merchant's mobile number.
             bill_number (str, optional): Unique bill or transaction reference.
             terminal_label (str, optional): Terminal ID or a short description.
             static (bool): Set to **True** for a static QR (no amount); Defaults to **False** (Dynamic).
             expiration (int): Expiration time in days. Defaults to 1 day.
+            **kwargs: Used for backward compatibility (e.g., `bank_account`).
 
         Returns:
             str: A formatted EMVCo-compliant KHQR string.
         """
+        
+        if "bank_account" in kwargs:
+            warnings.warn(
+                "The 'bank_account' parameter is deprecated and will be removed in future versions. "
+                "Please use 'account_id' instead.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            
+            if not account_id:
+                account_id = kwargs.pop("bank_account")
+                
+        if not account_id:
+            raise ValueError("Missing required argument: 'account_id'.")
+        if not merchant_name:
+            raise ValueError("Missing required argument: 'merchant_name'.")
+        if not merchant_city:
+            raise ValueError("Missing required argument: 'merchant_city'.")
+        if not currency:
+            raise ValueError("Missing required argument: 'currency'.")
         
         if amount <= 0:
             static = True
         
         qr_data = self.__payload_format_indicator.value()
         qr_data += self.__point_of_initiation.static() if static else self.__point_of_initiation.dynamic()
-        qr_data += self.__global_unique_identifier.value(bank_account)
+        qr_data += self.__global_unique_identifier.value(account_id)  # <-- ប្តូរមកប្រើ account_id
         qr_data += self.__mcc.value()
         qr_data += self.__transaction_currency.value(currency)
         if not static:
@@ -154,6 +176,7 @@ class KHQR:
         qr_data += self.__country_code.value()
         qr_data += self.__merchant_name.value(merchant_name)
         qr_data += self.__merchant_city.value(merchant_city)
+        
         additional_data = self.__additional_data_field.value(
             store_label=store_label,
             phone_number=phone_number,
@@ -162,8 +185,10 @@ class KHQR:
         )
         if additional_data:
             qr_data += additional_data
+            
         qr_data += self.__timestamp.value(static, expiration)
         qr_data += self.__crc.value(qr_data)
+        
         return qr_data
 
     def generate_md5(

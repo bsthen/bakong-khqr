@@ -11,34 +11,34 @@ class GlobalUniqueIdentifier:
         self.__merchant_account_information_individual = emv.merchant_account_information_individual
         self.__max_length = emv.invalid_length_bakong_account
 
-    def value(self, bank_account: str) -> str:
+    def value(self, account_id: str) -> str:
         """
-        Generate the global unique identifier based on the bank account.
+        Generate the global unique identifier based on the account ID.
 
         Args:
-        - bank_account (str): The bank account number.
+        - account_id (str): The account ID.
 
         Returns:
         - str: The formatted global unique identifier.
 
         Raises:
-        - TypeError: If `bank_account` is not a string.
-        - ValueError: If `bank_account` exceeds the maximum allowed length.
+        - TypeError: If `account_id` is not a string.
+        - ValueError: If `account_id` exceeds the maximum allowed length.
         """
-        if not isinstance(bank_account, str):
-            raise TypeError("Bank account must be a string.")
+        if not isinstance(account_id, str):
+            raise TypeError("Account ID must be a string.")
         
-        # Ensure the bank account does not exceed the maximum allowed length
-        length_of_bank_account = len(bank_account)
+        # Ensure the account ID does not exceed the maximum allowed length
+        length_of_account_id = len(account_id)
         
-        if length_of_bank_account > self.__max_length:
-            raise ValueError(f"Bank account cannot exceed {self.__max_length} characters. Your input length: {length_of_bank_account} characters.")
+        if length_of_account_id > self.__max_length:
+            raise ValueError(f"Account ID cannot exceed {self.__max_length} characters. Your input length: {length_of_account_id} characters.")
         
-        # Calculate the length of the bank account number
-        length_of_bank_account = f"{length_of_bank_account:02}"
+        # Calculate the length of the account ID
+        length_of_account_id = f"{length_of_account_id:02}"
         
         # Generate the result string
-        result = f"{self.__payload_format_indicator}{length_of_bank_account}{bank_account}"
+        result = f"{self.__payload_format_indicator}{length_of_account_id}{account_id}"
         
         # Calculate the length of the result
         length_result = f"{len(result):02}"

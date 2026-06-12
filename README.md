@@ -115,7 +115,7 @@ khqr = KHQR("eyJhbGciOiJIUzI1NiIsI...nMhgG87BWeDg9Lu-_CKe1SMqC0")
 
 # Generate QR code data for a transaction:
 qr_string = khqr.create_qr(
-    bank_account='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
+    account_id='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
     merchant_name='Your Name',
     merchant_city='Phnom Penh',
     amount=9800, #9800 Riel
@@ -291,7 +291,7 @@ from bakong_khqr import KHQR
 khqr = KHQR("your_bakong_token")
 
 qr = khqr.create_qr(
-    bank_account='user_name@bank',
+    account_id='user_name@bank',
     merchant_name='Your Name',
     merchant_city='Phnom Penh',
     amount=100.00,
@@ -312,7 +312,7 @@ print("QR image saved at:", png_path)
 
 #### Parameters for `create_qr()` Method
 
-- `bank_account`: The bank account associated with the transaction.
+- `account_id`: The Bakong Account ID associated with the transaction.
 - `merchant_name`: Name of the merchant.
 - `merchant_city`: City where the merchant is located.
 - `amount`: Amount to be transacted.
