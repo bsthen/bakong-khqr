@@ -43,6 +43,11 @@ class KHQR:
             self.__bakong_api = "https://api.bakongrelay.com/v1"
         else:
             self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
+    
+    def __check_relay_token(self):
+        """Helper method to ensure the token is a Bakong Relay token."""
+        if not self.__bakong_token or not self.__bakong_token.startswith("rbk"):
+            raise ValueError("A valid Relay Token (starting with 'rbk') is required to use Web Checkout features.")
         
     def __check_bakong_token(self):
         if not self.__bakong_token:
@@ -73,8 +78,7 @@ class KHQR:
             except Exception as e:
                 raise ValueError(f"Failed to connect to Bakong API: {e}")
 
-            # Handle specific status codes
-            if response.status == 200:
+            if response.status in (200, 201):
                 try:
                     data = json.loads(response_data)
                     if not isinstance(data, dict):
@@ -83,7 +87,13 @@ class KHQR:
                 except json.JSONDecodeError:
                     raise ValueError(f"Bakong returned invalid JSON: {response_data}")
             
-            # Mapping statuses to messages
+            try:
+                error_data = json.loads(response_data)
+                if isinstance(error_data, dict) and "responseCode" in error_data:
+                    return error_data
+            except json.JSONDecodeError:
+                pass 
+            
             errors = {
                 400: "Bad request. Please check your input parameters and try again.",
                 401: "Your Developer Token is either incorrect or expired. Please renew it through Bakong Developer.",
@@ -371,3 +381,92 @@ class KHQR:
             return result.to_data_uri()
         else:
             return result.to_png(output_path)
+
+    def create_webcheckout(
+        self,
+        trans_id: str,
+        account_id: str,
+        merchant_name: str,
+        merchant_city: str,
+        amount: float,
+        currency: str,
+        return_url: str,
+        webhook_url: str,
+        lang: str = "km",
+        ttl: int = 5
+    ) -> dict[str, Any]:
+        """
+        Create a new Bakong Web Checkout session.
+        
+        ⚠️ IMPORTANT: The domains for `return_url` and `webhook_url` MUST be whitelisted.
+        To whitelist your domains, please use the Telegram Bot: 
+        👉 https://t.me/bakong_relay_bot?start=relay_signup
+
+        Args:
+            trans_id (str): Your platform's unique transaction or tracking identifier.
+            account_id (str): The recipient Bakong Account ID (e.g., merchant@bank).
+            merchant_name (str): The display name of the merchant.
+            merchant_city (str): The merchant operating city (e.g., 'Phnom Penh').
+            amount (float): Total transaction value to collect.
+            currency (str): The target currency ('USD' or 'KHR').
+            return_url (str): The web destination to send the user after payment.
+            webhook_url (str): Server-to-server callback endpoint for status events.
+            lang (str, optional): Interface language ('km', 'en', 'zh'). Defaults to 'km'.
+            ttl (int, optional): Session timeout in minutes (1 to 1440). Defaults to 5.
+
+        Returns:
+            dict: The API response containing the 'checkout_url', 'session_id', and 'iframe_snippet'.
+        """
+        self.__check_relay_token()
+        
+        payload = {
+            "trans_id": trans_id,
+            "req_custom": {
+                "lang": lang,
+                "ttl": ttl
+            },
+            "req_khqr": {
+                "account_id": account_id,
+                "merchant_name": merchant_name,
+                "merchant_city": merchant_city,
+                "amount": amount,
+                "currency": currency
+            },
+            "req_url": {
+                "return_url": return_url,
+                "webhook_url": webhook_url
+            }
+        }
+        
+        response = self.__post_request("/web_checkouts/create", payload)
+        
+        # Optionally enhance the error message if the domain is not whitelisted
+        if response.get("responseCode") == 1:
+            msg = response.get("responseMessage", "")
+            if "not whitelisted" in msg or "banned" in msg:
+                response["responseMessage"] = f"{msg} Please whitelist your domains via Telegram: https://t.me/bakong_relay_bot?start=relay_signup"
+                
+        return response
+
+    def get_webcheckout(
+        self,
+        session_id: str
+    ) -> dict[str, Any]:
+        """
+        Retrieve transaction details and status of a specific Web Checkout session.
+
+        Args:
+            session_id (str): The unique alphanumeric web session identifier 
+                              generated during the `create_webcheckout` process.
+
+        Returns:
+            dict: The API response containing the checkout status ('UNPAID', 'PAID', or 'EXPIRED')
+                  and comprehensive transaction data if successfully paid.
+        """
+        self.__check_relay_token()
+        
+        payload = {
+            "session_id": session_id
+        }
+        
+        return self.__post_request("/web_checkouts/details", payload)

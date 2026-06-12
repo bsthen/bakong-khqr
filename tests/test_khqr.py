@@ -66,6 +66,30 @@ class TestKHQR(unittest.TestCase):
         print("Check Payment Status:", payment_status)
         print("Payment Information:", payment_info)
         print("Check Bulk Payments Status:", bulk_payments_status)
+        
+        # create web checkout
+        web_checkout_url = self.khqr.create_webcheckout(
+            trans_id="TRX0123456789", # Unique transaction ID (e.g., TRX0123456789)
+            account_id="sothen_ban@wing", # Payee's account ID (e.g., sothen_ban@wing)
+            merchant_name="BSTHEN", # Merchant name (e.g., BSTHEN)
+            merchant_city="Phnom Penh", # City name (e.g., Phnom Penh)
+            amount=15000, # Amount in Riel (e.g., 15000)
+            currency="KHR", # Currency code (e.g., KHR or USD)
+            return_url="http://localhost/",
+            webhook_url="http://localhost/webhook",
+            lang="km",
+            ttl=5
+        )
+        # Return all web checkout data
+        print("Web Checkout URL:", web_checkout_url)
+        
+        # Return only the checkout URL
+        print("Web Checkout URL:", web_checkout_url["data"]["checkout_url"])
+        
+        # get web checkout data
+        web_checkout_data = self.khqr.get_webcheckout("pQOjrGGv1Xkr")
+        print("Web Checkout Data:", web_checkout_data)
+        # check web checkout payment data
 
 if __name__ == '__main__':
     unittest.main()

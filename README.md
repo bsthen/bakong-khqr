@@ -102,6 +102,8 @@ To generate QR code data for a transaction, create an instance of the KHQR() cla
 - check_payment() method with the required parameters.
 - get_payment() method with the required parameters.
 - check_bulk_payments() method with the required parameters.
+- create_webcheckout() method to initialize a hosted web checkout session (RBK Token required).
+- get_webcheckout() method to retrieve the status of a web checkout session (RBK Token required).
 
 Example:
 
@@ -212,6 +214,66 @@ print(paid_md5)
 # Returns a list containing only the MD5 hashes that correspond to successful (paid) transactions.
 ```
 
+### Web Checkout Integration (Requires Relay Token)
+
+You can easily generate a hosted checkout page or iframe snippet using a Bakong Relay Token (rbk...).
+
+`⚠️ IMPORTANT`: Your `return_url` and `webhook_url` domains MUST be whitelisted. Use the [Bakong Relay Telegram Bot](https://t.me/bakong_relay_bot?start=relay_signup) to whitelist your domains before creating a checkout session.
+
+Example:
+
+```bash
+# 1. Create a Web Checkout Session
+checkout_session = khqr.create_webcheckout(
+    trans_id="TRX12345678",
+    account_id="your_name@bank",
+    merchant_name="Your Name",
+    merchant_city="Phnom Penh",
+    amount=3000,
+    currency="KHR",
+    return_url="https://your_site.com/store/", # MUST BE WHITELISTED
+    webhook_url="https://your_site.com/api/webhooks", # MUST BE WHITELISTED
+    lang="km", # Optional: 'km', 'en', 'zh'
+    ttl=5      # Optional: Session timeout in minutes
+)
+print(checkout_session)
+# Result:
+# {
+#   "responseCode": 0,
+#   "responseMessage": "Web checkout session created.",
+#   "data": {
+#     "checkout_url": "[https://checkout.bakongrelay.com/pQOjrGGv1Xkr](https://checkout.bakongrelay.com/pQOjrGGv1Xkr)",
+#     "session_id": "pQOjrGGv1Xkr",
+#     "iframe_snippet": "<iframe ...></iframe>",
+#     "id": "e3298cb2-ede4-...",
+#     "trans_id": "TRX12345678"
+#   }
+# }
+
+print("Web Checkout URL:", web_checkout_url["data"]["checkout_url"])
+# Result:
+# Web Checkout URL: https://checkout.bakongrelay.com/pQOjrGGv1Xkr
+
+print("Web Checkout URL:", web_checkout_url["data"]["session_id"])
+# Result:
+# Web Checkout URL: pQOjrGGv1Xkr
+
+# 2. Check the Status of a Web Checkout Session
+checkout_status = khqr.get_webcheckout(session_id="pQOjrGGv1Xkr")
+print(checkout_status)
+# Result:
+# {
+#   "responseCode": 0,
+#   "responseMessage": "Checkout session retrieved successfully.",
+#   "data": {
+#       "status": "PAID", # UNPAID, PAID, or EXPIRED
+#       "trans_id": "TRX12345678",
+#       "data": { "hash": "...", "fromAccountId": "...", "amount": 3000 },
+#       ...
+#   }
+# }
+```
+
 ### Generate QR Image
 
 The `qr_image()` method generates a QR code image from a QR string.
@@ -263,6 +325,23 @@ print("QR image saved at:", png_path)
 - `expiration` (optional): Expiration time in days for the QR code (default: 1 day).
 
 `Note`: Using static mode will create a Static QR Code for payment, allowing unlimited transactions, usage, and a zero amount included.
+
+#### Parameters for `create_webcheckout()` Method
+
+- `trans_id`: Your platform's unique transaction or tracking identifier.
+- `account_id`: The recipient Bakong Account ID (e.g., merchant@bank).
+- `merchant_name`: The display name of the merchant.
+- `merchant_city`: The merchant operating city (e.g., 'Phnom Penh').
+- `amount`: Total transaction value to collect.
+- `currency`: The target currency ('USD' or 'KHR').
+- `return_url`: Web destination to send the user after payment (Domain must be whitelisted).
+- `webhook_url`: Server-to-server callback endpoint to push status events (Domain must be whitelisted).
+- `lang`: (optional): Interface language ('km', 'en', 'zh'). Defaults to 'km'.
+- `ttl`: (optional): Time-To-Live for the session in minutes. Defaults to 5.
+
+#### Parameters for `get_webcheckout()` Method
+
+- `session_id`: The unique alphanumeric web session identifier generated during checkout creation.
 
 #### Parameters for `generate_deeplink()` Method
 
