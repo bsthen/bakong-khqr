@@ -1,3 +1,4 @@
+import time
 import json
 import warnings
 import http.client
@@ -276,16 +277,24 @@ class KHQR:
     
     def check_payment(
         self, 
-        md5: str
-        ) -> str:
+        md5: str,
+        start_time: float = None
+    ) -> str | tuple[str, int]:
         """
         Check the payment status of a transaction by its MD5 hash.
+        Supports smart dynamic polling delays based on the Dynamic Windows Matrix.
 
         Args:
             md5 (str): The MD5 hash of the QR code generated via `generate_md5()`.
+            start_time (float, optional): The timestamp (time.time()) when the transaction 
+                                        or QR code was created. If provided, returns a tuple 
+                                        containing the status and the suggested next delay.
             
         Returns:
-            str: The transaction status. Common values are `PAID` or `UNPAID`.
+            str | tuple[str, int]: 
+                - If `start_time` is None: Returns a string status (`PAID` or `UNPAID`).
+                - If `start_time` is provided: Returns a tuple `(status, next_delay)` 
+                where `next_delay` is the suggested sleep time in seconds.
         
         Note:
             A status of **UNPAID** may indicate that the transaction is still pending 
@@ -296,12 +305,32 @@ class KHQR:
             "md5": md5
         }
         
+        # Send request to Bakong Relay API to check transaction status
         response = self.__post_request("/check_transaction_by_md5", payload)
+        status = "PAID" if response.get("responseCode") == 0 else "UNPAID"
         
-        if response.get("responseCode") == 0:
-            return "PAID"
+        # --- Case 1: Legacy Implementation (Backward Compatibility) ---
+        if start_time is None:
+            return status  # Returns only string status to avoid breaking existing clients
+
+        # --- Case 2: Smart Polling Implementation (Dynamic Delays) ---
+        if status == "PAID":
+            return status, 0  # No further delay needed if the transaction is successful
+            
+        # Calculate total elapsed time in seconds since the QR code creation
+        elapsed = time.time() - start_time
         
-        return "UNPAID"
+        # Calculate next delay based on the Dynamic Windows Matrix
+        if elapsed <= 300:          # 0 to 5 minutes (300 seconds)
+            next_delay = 5          # Recommend checking every 5 seconds
+        elif elapsed <= 900:        # 5 to 15 minutes (900 seconds)
+            next_delay = 10         # Recommend checking every 10 seconds
+        elif elapsed <= 3600:       # 15 minutes to 1 hour (3600 seconds)
+            next_delay = 15         # Recommend checking every 15 seconds
+        else:                       # Over 1 hour onwards
+            next_delay = 300        # Recommend checking every 5 minutes (300 seconds)
+            
+        return status, next_delay  # Returns a tuple for the new non-blocking polling flow
     
     def get_payment(
         self, 
