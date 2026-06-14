@@ -59,8 +59,6 @@ A Python package for generating payment transactions compliant with the Bakong K
            style="vertical-align: middle;" />
   </a>
 
-
-
 ## 📋 Requirement
 
 - Python3
