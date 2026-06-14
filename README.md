@@ -37,11 +37,11 @@ A Python package for generating payment transactions compliant with the Bakong K
        style="vertical-align: middle;" />
   <strong style="margin: 0 6px;">Bakong App</strong>
   <a href="https://apps.apple.com/kh/app/bakong/id1440829141" target="_blank">
-      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white"
+      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="Apple Store Icon"
            style="vertical-align: middle;" />
-  </a> | 
+  </a> |
   <a href="https://play.google.com/store/apps/details?id=jp.co.soramitsu.bakong" target="_blank">
-      <img src="https://img.shields.io/badge/Google_Play-414141?style=flat&logo=google-play&logoColor=white"
+      <img src="https://img.shields.io/badge/Google_Play-414141?style=flat&logo=google-play&logoColor=white" alt="Google Play Icon"
            style="vertical-align: middle;" />
   </a>
 
@@ -51,11 +51,11 @@ A Python package for generating payment transactions compliant with the Bakong K
        style="vertical-align: middle;" />
   <strong style="margin: 0 6px;">Bakong Tourists</strong>
   <a href="https://apps.apple.com/kh/app/bakong-tourists/id6471774666" target="_blank">
-      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white"
+      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="Bakong Tourists Icon"
            style="vertical-align: middle;" />
-  </a> | 
+  </a> |
   <a href="https://play.google.com/store/apps/details?id=kh.gov.nbc.bakong.tourist" target="_blank">
-      <img src="https://img.shields.io/badge/Google_Play-414141?style=flat&logo=google-play&logoColor=white"
+      <img src="https://img.shields.io/badge/Google_Play-414141?style=flat&logo=google-play&logoColor=white" alt="Bakong Icon"
            style="vertical-align: middle;" />
   </a>
 
@@ -352,7 +352,6 @@ print("QR image saved at:", png_path)
 
     ***Deprecation Note***: The parameter `callback` has been renamed to `appDeepLinkCallback` to align with the Bakong standard. While `callback` still works in the current version for backward compatibility, it will be removed in future releases. Please update your implementation.
 
-
 #### Parameters for `generate_md5()` Method
 
 - `qr`: Valid QR Code data as string that generate from create_qr() method.
@@ -376,6 +375,7 @@ print("QR image saved at:", png_path)
 - `format`: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
 
 ## ✨ Bakong Relay API Support (New in v0.5.*)
+
 ### Why Use Bakong Relay? (Optional)
 
 Many developers face **HTTP 403 errors** when accessing Bakong APIs from servers outside Cambodia.
