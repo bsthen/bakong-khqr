@@ -309,28 +309,24 @@ class KHQR:
         response = self.__post_request("/check_transaction_by_md5", payload)
         status = "PAID" if response.get("responseCode") == 0 else "UNPAID"
         
-        # --- Case 1: Legacy Implementation (Backward Compatibility) ---
         if start_time is None:
-            return status  # Returns only string status to avoid breaking existing clients
+            return status
 
-        # --- Case 2: Smart Polling Implementation (Dynamic Delays) ---
         if status == "PAID":
-            return status, 0  # No further delay needed if the transaction is successful
+            return status, 0
             
-        # Calculate total elapsed time in seconds since the QR code creation
         elapsed = time.time() - start_time
         
-        # Calculate next delay based on the Dynamic Windows Matrix
-        if elapsed <= 300:          # 0 to 5 minutes (300 seconds)
-            next_delay = 5          # Recommend checking every 5 seconds
-        elif elapsed <= 900:        # 5 to 15 minutes (900 seconds)
-            next_delay = 10         # Recommend checking every 10 seconds
-        elif elapsed <= 3600:       # 15 minutes to 1 hour (3600 seconds)
-            next_delay = 15         # Recommend checking every 15 seconds
-        else:                       # Over 1 hour onwards
-            next_delay = 300        # Recommend checking every 5 minutes (300 seconds)
+        if elapsed <= 300:
+            next_delay = 5
+        elif elapsed <= 900:
+            next_delay = 10
+        elif elapsed <= 3600:
+            next_delay = 15
+        else:
+            next_delay = 300
             
-        return status, next_delay  # Returns a tuple for the new non-blocking polling flow
+        return status, next_delay
     
     def get_payment(
         self, 
