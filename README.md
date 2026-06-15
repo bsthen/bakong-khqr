@@ -103,6 +103,12 @@ To generate QR code data for a transaction, create an instance of the KHQR() cla
 - create_webcheckout() method to initialize a hosted web checkout session (RBK Token required).
 - get_webcheckout() method to retrieve the status of a web checkout session (RBK Token required).
 
+#### 🔄 Parameter Update Notice (`bank_account` ➡️ `account_id`)
+
+To align perfectly with the official Bakong documentation, the parameter `bank_account` has been renamed to `account_id`.
+
+- Backward Compatibility: If your old code still uses `bank_account`, it will continue to work normally but a `DeprecationWarning` will be triggered. It is highly recommended to update your codebase to use `account_id`.
+
 Example:
 
 ```bash
@@ -357,6 +363,7 @@ print("QR image saved at:", png_path)
 #### Parameters for `check_payment()` Method
 
 - `md5`: Valid hash md5 from generate_md5() method of the correct transaction.
+- `start_time`: (float, optional): The timestamp (time.time()) when the transaction or QR code was created. If provided, returns a tuple containing the `status` and the suggested `next delay`.
 
 #### Parameters for `check_bulk_payments()` Method
 
@@ -372,7 +379,9 @@ print("QR image saved at:", png_path)
 - `output_path`: Optional path to save the image. If not provided, returns a temp file path.
 - `format`: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
 
-## ✨ Bakong Relay API Support (New in v0.5.*)
+# ✨ What New?
+
+## 1. ⚡ Bakong Relay API Support (New in v0.5.*)
 
 ### Why Use Bakong Relay? (Optional)
 
@@ -387,6 +396,127 @@ If your server is in Cambodia or you have no access issues, you can continue usi
 
 For more information, token creation, pricing, and full documentation, visit:  
 👉 **[bakongrelay.com](https://bakongrelay.com)** or **[Telegram Bot](https://t.me/bakong_relay_bot/)**
+
+## 2. 🧠 Smart Polling Guide for `check_payment()`
+
+Starting from version `0.6.0+`, the `check_payment()` method supports a smart Dynamic Polling Delays Matrix. This optimizes API token consumption and prevents server overload, while remaining 100% non-blocking and safe for Single-Threaded systems (like standard Telegram Bots).
+
+### 1. How it works (The Concept)
+
+- **Legacy Flow (Backward Compatible)**: If you call `check_payment(md5)` without any extra parameters, it behaves exactly like the old version. It makes one API request and immediately returns a string (`"PAID"` or `"UNPAID"`).
+
+- **Smart Polling Flow**: If you provide the `start_time` parameter, the SDK will not block or loop internally. Instead, it will instantly check the status and suggest a recommended wait time (`next_delay` in seconds) based on how long the QR code has been open.
+
+## 2. 💻 Code Implementation (How Merchants Should Write the Loop)
+
+Below are practical examples of how developers can implement the check loop in their applications.
+
+**❌ The Bad Way (Legacy Loop - High Token Consumption)**:
+
+Previously, developers used a fixed loop interval. This bursts API endpoints and burns tokens rapidly, especially if a customer leaves the QR screen open for hours.
+
+```bash
+import time
+from bakong_khqr import KHQR
+
+khqr = KHQR("your_token")
+md5 = "your_transaction_md5"
+
+# 1. Mark the starting time and set a 10-minute timeout (600 seconds)
+start_time = time.time()
+timeout_seconds = 10 * 60
+
+print("Polling started with a 10-minute timeout...")
+
+while True:
+    status = khqr.check_payment(md5)
+    
+    if status == "PAID":
+        print("Success!")
+        break
+        
+    # Calculate how much time has passed
+    elapsed_time = time.time() - start_time
+    
+    # 2. Force break the loop once 10 minutes have passed
+    if elapsed_time >= timeout_seconds:
+        print("Timeout reached. Transaction expired!")
+        break
+        
+    time.sleep(1)
+
+# ❌ BAD: Hardcoded 1-second interval will waste up to 600 API calls in 10 minutes!
+```
+
+**✅ The Best Way (Smart Polling with Timeout Control)**:
+
+This approach tells the SDK exactly when the QR code session started. The SDK returns a recommended delay matching your platform's dynamic windows matrix, while the loop cleanly handles its own expiration timeout.
+
+```bash
+import time
+from bakong_khqr import KHQR
+
+khqr = KHQR("your_token")
+md5 = "your_transaction_md5"
+
+# 1. Mark the starting time of the transaction session
+start_time = time.time()
+
+# 2. Set your custom expiration timeout (e.g., 10 minutes)
+timeout_minutes = 10
+timeout_seconds = timeout_minutes * 60
+
+print(f"Polling started. Expiration set to {timeout_minutes} minutes.")
+
+# 3. Non-blocking smart loop
+while True:
+    # Pass start_time to get the status alongside a recommended dynamic delay
+    status, next_delay = khqr.check_payment(md5, start_time=start_time)
+    
+    # Condition A: Payment is successful -> Break out immediately
+    if status == "PAID":
+        print("🎉 Payment Successful! Processing order...")
+        break
+        
+    # Calculate total seconds elapsed since the QR was created
+    elapsed_time = time.time() - start_time
+    
+    # Condition B: Reached maximum expiration limit -> Stop polling safely
+    if elapsed_time >= timeout_seconds:
+        print("🛑 Timeout reached. Transaction expired.")
+        break
+        
+    # Condition C: Still UNPAID -> Wait exactly as suggested by the SDK matrix
+    print(f"Status: UNPAID. Sleeping for {next_delay}s...")
+    time.sleep(next_delay)
+
+# ✅ GOOD: Smart dynamic delay will only use up to 90 API calls in 10 minutes!
+```
+
+### 📊 Understanding the Response Matrix
+
+When `start_time` is passed, the SDK dynamically adjusts `next_delay` according to this timeline to balance swift notifications with API efficiency:
+
+| Time Elapsed since Start | SDK Recommended Delay | Total Calls Made (if Unpaid) | Why? |
+| --------- | ------------------ | ------------------ | ------------------ |
+| 0 to 5 minutes | `5` seconds | Up to 60 calls | High chance of instant scanning. Keeps it snappy. |
+| 5 to 15 minutes | `10` seconds | Up to 60 calls | Customer might be delayed. Ease up on the requests. |
+| 15 minutes to 1 hour | `15` seconds | Up to 180 calls | Extended window. Further reduces token consumption. |
+| Over 1 hour | `300` seconds (5 mins) | 12 calls / hour | Dormant or forgotten QR session. Maximum preservation. |
+
+### 🛠️ Method Signature Breakdown
+
+```bash
+def check_payment(self, md5: str, start_time: float = None) -> str | tuple[str, int]:
+```
+
+- Parameters:
+  - `md5` *(str)*: Valid hash MD5 from `generate_md5()`.
+  - `start_time` *(float, optional)*: The Unix timestamp generated by `time.time()` when the QR code transaction was initialized.
+
+- Return Values:
+  - Returns `str` (e.g., `"UNPAID"`) if `start_time` is omitted.
+  - Returns `tuple` (e.g., `("UNPAID", 5)`) if `start_time` is supplied.
 
 ## 📄 Bakong Official
 
