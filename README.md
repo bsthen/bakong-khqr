@@ -115,7 +115,7 @@ Example:
 from bakong_khqr import KHQR
 
 # Create an instance of KHQR with Bakong Developer Token:
-khqr = KHQR("eyJhbGciOiJIUzI1NiIsI...nMhgG87BWeDg9Lu-_CKe1SMqC0")
+khqr = KHQR("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiOWYzNTAzNTIxMGRhNGFjZCJ9LCJpYXQiOjE3ODc0OTE0MDIsImV4cCI6MTc5NTI2NzQwMn0.tnD9qaqFoZZjTsUBZkGbTazW6Hp_Wl8pBPA7WLXpdN0")
 
 # Generate QR code data for a transaction:
 qr_string = khqr.create_qr(
