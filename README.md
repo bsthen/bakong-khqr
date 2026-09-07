@@ -6,6 +6,11 @@
     </a>
 </p>
 
+> [!IMPORTANT]
+> **Bakong Relay (bakongrelay.com) Discontinued Notice**  
+> The hosted relay service (~~https://bakongrelay.com~~) and RBK tokens have been discontinued.  
+> **The core `bakong-khqr` Python SDK remains active and maintained** for generating KHQR strings, Deeplinks, MD5 transaction hashes, QR images, and checking transactions directly using official NBC Bakong tokens (`api-bakong.nbc.gov.kh`).
+
 <p align="center">
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
 </p>
@@ -61,10 +66,11 @@ A Python package for generating payment transactions compliant with the Bakong K
 
 ## 📋 Requirement
 
-- Python3
+- Python 3.8+
 - A Bakong account with full KYC verification
-- A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register/](https://api-bakong.nbc.gov.kh/register/) or RBK Token: [https://bakongrelay.com/](https://bakongrelay.com/))
-- A VPS or hosting service located in Cambodia or use RBK Token.
+- A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register/](https://api-bakong.nbc.gov.kh/register/))
+- A VPS or hosting service located in Cambodia (required by NBC to query official Bakong APIs without HTTP 403 errors).
+- *(Note: RBK Token & ~~https://bakongrelay.com~~ have been discontinued).*
 
 ## 📦 Installation
 
@@ -80,28 +86,26 @@ pip3 install --upgrade bakong-khqr
 
 ## 🚀 Usage
 
-The bakong-khqr package provides the KHQR class for generating QR code, Deeplink, Check Payment, Get Payment transaction for Bakong KHQR.
+The bakong-khqr package provides the `KHQR` class for generating QR codes, Deeplinks, MD5 hashes, and verifying Bakong KHQR transactions.
 
 ### Importing the package
 
 You can import the KHQR class from the package as follows:
 
-```bash
+```python
 from bakong_khqr import KHQR
 ```
 
 ### Creating Payment Transaction
 
-To generate QR code data for a transaction, create an instance of the KHQR() class with Bakong Token and call the:
+To generate QR code data for a transaction, create an instance of the `KHQR()` class with your official Bakong Token:
 
-- create_qr() method with the required parameters.
-- generate_deeplink() method with the required parameters.
-- generate_md5() method with the required parameters.
-- check_payment() method with the required parameters.
-- get_payment() method with the required parameters.
-- check_bulk_payments() method with the required parameters.
-- create_webcheckout() method to initialize a hosted web checkout session (RBK Token required).
-- get_webcheckout() method to retrieve the status of a web checkout session (RBK Token required).
+- `create_qr()` method with the required parameters.
+- `generate_deeplink()` method with the required parameters.
+- `generate_md5()` method with the required parameters.
+- `check_payment()` method with the required parameters.
+- `get_payment()` method with the required parameters.
+- `check_bulk_payments()` method with the required parameters.
 
 #### 🔄 Parameter Update Notice (`bank_account` ➡️ `account_id`)
 
@@ -111,7 +115,7 @@ To align perfectly with the official Bakong documentation, the parameter `bank_a
 
 Example:
 
-```bash
+```python
 from bakong_khqr import KHQR
 
 # Create an instance of KHQR with Bakong Developer Token:
@@ -122,14 +126,14 @@ qr_string = khqr.create_qr(
     account_id='user_name@bank', # Check your user_name@bank under Bakong profile (Mobile App)
     merchant_name='Your Name',
     merchant_city='Phnom Penh',
-    amount=9800, #9800 Riel
+    amount=9800, # 9800 Riel
     currency='KHR', # USD or KHR
     store_label='Phsar Thmei',
     phone_number='012345678',
     bill_number='TRX012345',
     terminal_label='POS-01',
     static=False, # Static or Dynamic QR code (default: False)
-    expiration=1 # Expiration time in 1 day for the QR code (default: 1 day). This is used to calculate the expiration time for the QR code.
+    expiration=1 # Expiration time in 1 day for the QR code (default: 1 day).
 )
 print(qr_string)
 # String Result: 00020101021229180014your_name@bank520459995303116540498005802KH5909Your Name6010Phnom Penh62510109TRX01234502090123456780311Phsar Thmei0706POS-01993400131773894603019011317738947758196304A5A3
@@ -156,7 +160,7 @@ print(payment_status)
 # Indicates that this transaction has not yet been paid.
 
 # Retrieve the payment information:
-#e.g. In case static QR code (static=True) is used for payment, and the amount is not known from the user's input.
+# e.g. In case static QR code (static=True) is used for payment, and the amount is not known from the user's input.
 payment_info = khqr.get_payment(md5)
 print(payment_info)
 # Object Result:
@@ -175,7 +179,6 @@ print(payment_info)
 #     "instructionRef": null,
 #     "externalRef": "100FT3###6550298"
 # }
-# You can retrieve information such as the amount to integrate into your system.
 
 # Check Bulk Transactions:
 md5_list = [
@@ -194,15 +197,9 @@ print(bulk_payments_status)
 
 # ⚠️ Bulk Transaction Check Limit
 # The Bakong API allows a maximum of 50 MD5 hashes per request when using the check_bulk_payments() method.
-#If you pass more than 50 hashes, the function will raise a ValueError to prevent unexpected API errors.
+# If you pass more than 50 hashes, the function will raise a ValueError to prevent unexpected API errors.
 
-md5_list = [md5_1, md5_2, ..., md5_51]  # 51 hashes
-
-# This will raise:
-# ValueError: The md5_list exceeds the allowed limit of 50 hashes per request.
-result = khqr.check_bulk_payments(md5_list)
-
-# ✅ If you need to check more than 50 transactions, you must handle chunking manually:
+# ✅ If you need to check more than 50 transactions, handle chunking manually:
 def chunked(iterable, size=50):
     for i in range(0, len(iterable), size):
         yield iterable[i:i + size]
@@ -214,74 +211,12 @@ for batch in chunked(all_md5):
     paid_md5.extend(khqr.check_bulk_payments(batch))
 
 print(paid_md5)
-# List Result: ["5154e4f795634ff1a0ae4b48e53a6d9c", "495fdaec0be5d94c89bc1283c7283d3d"]
-# Returns a list containing only the MD5 hashes that correspond to successful (paid) transactions.
 ```
 
-### Web Checkout Integration (Requires Relay Token)
-
-You can easily generate a hosted checkout page or iframe snippet using a Bakong Relay Token (rbk...).
-
-`⚠️ IMPORTANT`: Your `return_url` and `webhook_url` domains MUST be whitelisted. Use the [Bakong Relay Telegram Bot](https://t.me/bakong_relay_bot?start=relay_signup) to whitelist your domains before creating a checkout session.
-
-Example:
-
-```bash
-# 1. Create a Web Checkout Session
-checkout_session = khqr.create_webcheckout(
-    trans_id="TRX12345678",
-    account_id="your_name@bank",
-    merchant_name="Your Name",
-    merchant_city="Phnom Penh",
-    amount=3000,
-    currency="KHR",
-    return_url="https://your_site.com/store/", # MUST BE WHITELISTED
-    webhook_url="https://your_site.com/api/webhooks", # MUST BE WHITELISTED
-    lang="km", # Optional: 'km', 'en', 'zh'
-    ttl=5      # Optional: Session timeout in minutes
-)
-print(checkout_session)
-# Result:
-# {
-#   "responseCode": 0,
-#   "responseMessage": "Web checkout session created.",
-#   "data": {
-#     "checkout_url": "[https://checkout.bakongrelay.com/pQOjrGGv1Xkr](https://checkout.bakongrelay.com/pQOjrGGv1Xkr)",
-#     "session_id": "pQOjrGGv1Xkr",
-#     "iframe_snippet": "<iframe ...></iframe>",
-#     "id": "e3298cb2-ede4-...",
-#     "trans_id": "TRX12345678"
-#   }
-# }
-
-print("Web Checkout URL:", web_checkout_url["data"]["checkout_url"])
-# Result:
-# Web Checkout URL: https://checkout.bakongrelay.com/pQOjrGGv1Xkr
-
-print("Web Checkout URL:", web_checkout_url["data"]["session_id"])
-# Result:
-# Web Checkout URL: pQOjrGGv1Xkr
-
-# 2. Check the Status of a Web Checkout Session
-checkout_status = khqr.get_webcheckout(session_id="pQOjrGGv1Xkr")
-print(checkout_status)
-# Result:
-# {
-#   "responseCode": 0,
-#   "responseMessage": "Checkout session retrieved successfully.",
-#   "data": {
-#       "status": "PAID", # UNPAID, PAID, or EXPIRED
-#       "trans_id": "TRX12345678",
-#       "data": { "hash": "...", "fromAccountId": "...", "amount": 3000 },
-#       ...
-#   }
-# }
-```
-
-### Generate QR Image
+### 🖼️ Generate QR Image
 
 The `qr_image()` method generates a QR code image from a QR string.
-Make sure you install the optional [image] extras to get dependencies like Pillow and qrcode:
+Make sure you install the optional `[image]` extras to get dependencies like Pillow and qrcode:
 
 ```bash
 pip3 install "bakong-khqr[image]"
@@ -289,7 +224,7 @@ pip3 install "bakong-khqr[image]"
 
 Example:
 
-```bash
+```python
 from bakong_khqr import KHQR
 
 khqr = KHQR("your_bakong_token")
@@ -311,8 +246,17 @@ qr = khqr.create_qr(
 # Generate QR image as PNG file path
 png_path = khqr.qr_image(qr)
 print("QR image saved at:", png_path)
-
 ```
+
+---
+
+### ⚠️ Web Checkout Integration (Discontinued)
+
+> [!CAUTION]
+> Hosted Web Checkout and RBK tokens via ~~https://bakongrelay.com~~ have been **discontinued**.
+> Methods `create_webcheckout()` and `get_webcheckout()` are no longer supported. Please integrate directly using official NBC KHQR payloads and mobile deeplinks.
+
+---
 
 #### Parameters for `create_qr()` Method
 
@@ -330,23 +274,6 @@ print("QR image saved at:", png_path)
 
 `Note`: Using static mode will create a Static QR Code for payment, allowing unlimited transactions, usage, and a zero amount included.
 
-#### Parameters for `create_webcheckout()` Method
-
-- `trans_id`: Your platform's unique transaction or tracking identifier.
-- `account_id`: The recipient Bakong Account ID (e.g., merchant@bank).
-- `merchant_name`: The display name of the merchant.
-- `merchant_city`: The merchant operating city (e.g., 'Phnom Penh').
-- `amount`: Total transaction value to collect.
-- `currency`: The target currency ('USD' or 'KHR').
-- `return_url`: Web destination to send the user after payment (Domain must be whitelisted).
-- `webhook_url`: Server-to-server callback endpoint to push status events (Domain must be whitelisted).
-- `lang`: (optional): Interface language ('km', 'en', 'zh'). Defaults to 'km'.
-- `ttl`: (optional): Time-To-Live for the session in minutes. Defaults to 5.
-
-#### Parameters for `get_webcheckout()` Method
-
-- `session_id`: The unique alphanumeric web session identifier generated during checkout creation.
-
 #### Parameters for `generate_deeplink()` Method
 
 - `qr`: Valid QR Code data as string that generate from create_qr() method.
@@ -354,7 +281,7 @@ print("QR image saved at:", png_path)
 - `appIconUrl`: Your App Icon URL.
 - `appName`: Your App Name.
 
-    ***Deprecation Note***: The parameter `callback` has been renamed to `appDeepLinkCallback` to align with the Bakong standard. While `callback` still works in the current version for backward compatibility, it will be removed in future releases. Please update your implementation.
+    ***Deprecation Note***: The parameter `callback` has been renamed to `appDeepLinkCallback` to align with the Bakong standard. While `callback` still works for backward compatibility, it will be removed in future releases.
 
 #### Parameters for `generate_md5()` Method
 
@@ -367,7 +294,7 @@ print("QR image saved at:", png_path)
 
 #### Parameters for `check_bulk_payments()` Method
 
-- `md5_list`: md5 list of all transacrions generate from generate_md5() method.
+- `md5_list`: md5 list of all transactions generate from generate_md5() method.
 
 #### Parameters for `get_payment()` Method
 
@@ -379,23 +306,12 @@ print("QR image saved at:", png_path)
 - `output_path`: Optional path to save the image. If not provided, returns a temp file path.
 - `format`: Image format to export ('png', 'jpeg','webp', 'bytes', 'base64' or 'base64_uri'). Default: 'png'.
 
-# ✨ What New?
+# ✨ What's New?
 
-## 1. ⚡ Bakong Relay API Support (New in v0.5.*)
+## 1. ⚡ Bakong Relay API *(Discontinued)*
 
-### Why Use Bakong Relay? (Optional)
-
-Many developers face **HTTP 403 errors** when accessing Bakong APIs from servers outside Cambodia.
-
-This service allows you to use **RBK tokens** directly in `bakong-khqr` (Python SDK), so your application can reliably check transactions, accounts, and references without restrictions.
-
-**Important**: Only `bakong-khqr` (Python SDK) supports RBK tokens.
-
-Using Bakong Relay is **optional**.  
-If your server is in Cambodia or you have no access issues, you can continue using official Bakong tokens — no changes are needed.
-
-For more information, token creation, pricing, and full documentation, visit:  
-👉 **[bakongrelay.com](https://bakongrelay.com)** or **[Telegram Bot](https://t.me/bakong_relay_bot/)**
+> [!NOTE]
+> The hosted service at ~~bakongrelay.com~~ has been discontinued. Developers should use official Bakong developer tokens from the National Bank of Cambodia directly from servers hosted within Cambodia.
 
 ## 2. 🧠 Smart Polling Guide for `check_payment()`
 
@@ -407,7 +323,7 @@ Starting from version `0.6.0+`, the `check_payment()` method supports a smart Dy
 
 - **Smart Polling Flow**: If you provide the `start_time` parameter, the SDK will not block or loop internally. Instead, it will instantly check the status and suggest a recommended wait time (`next_delay` in seconds) based on how long the QR code has been open.
 
-## 2. 💻 Code Implementation (How Merchants Should Write the Loop)
+### 2. 💻 Code Implementation (How Merchants Should Write the Loop)
 
 Below are practical examples of how developers can implement the check loop in their applications.
 
@@ -415,7 +331,7 @@ Below are practical examples of how developers can implement the check loop in t
 
 Previously, developers used a fixed loop interval. This bursts API endpoints and burns tokens rapidly, especially if a customer leaves the QR screen open for hours.
 
-```bash
+```python
 import time
 from bakong_khqr import KHQR
 
@@ -452,7 +368,7 @@ while True:
 
 This approach tells the SDK exactly when the QR code session started. The SDK returns a recommended delay matching your platform's dynamic windows matrix, while the loop cleanly handles its own expiration timeout.
 
-```bash
+```python
 import time
 from bakong_khqr import KHQR
 
@@ -506,7 +422,7 @@ When `start_time` is passed, the SDK dynamically adjusts `next_delay` according 
 
 ### 🛠️ Method Signature Breakdown
 
-```bash
+```python
 def check_payment(self, md5: str, start_time: float = None) -> str | tuple[str, int]:
 ```
 
