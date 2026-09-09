@@ -6,10 +6,10 @@
     </a>
 </p>
 
-> [!IMPORTANT]
-> **Bakong Relay (bakongrelay.com) Discontinued Notice**  
-> The hosted relay service (~~https://bakongrelay.com~~) and RBK tokens have been discontinued.  
-> **The core `bakong-khqr` Python SDK remains active and maintained** for generating KHQR strings, Deeplinks, MD5 transaction hashes, QR images, and checking transactions directly using official NBC Bakong tokens (`api-bakong.nbc.gov.kh`).
+> [!TIP]
+> **Bakong Relay (bakongrelay.com) is Fully Active & Supported!**  
+> You can integrate Bakong KHQR using either your official **NBC Bakong Developer Token** or a **Bakong Relay Token (`rbk...`)**.  
+> With **Bakong Relay**, transactions and verification can be performed globally without requiring a Cambodia-based IP or VPS.
 
 <p align="center">
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
@@ -26,7 +26,7 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
     </a>
     <a href="https://socket.dev/pypi/package/bakong-khqr/" target="_blank">
-        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.6.0?artifact_id=tar-gz"
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.6.1?artifact_id=tar-gz"
              alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
@@ -70,7 +70,6 @@ A Python package for generating payment transactions compliant with the Bakong K
 - A Bakong account with full KYC verification
 - A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register/](https://api-bakong.nbc.gov.kh/register/))
 - A VPS or hosting service located in Cambodia (required by NBC to query official Bakong APIs without HTTP 403 errors).
-- *(Note: RBK Token & ~~https://bakongrelay.com~~ have been discontinued).*
 
 ## 📦 Installation
 
@@ -252,9 +251,10 @@ print("QR image saved at:", png_path)
 
 ### ⚠️ Web Checkout Integration (Discontinued)
 
-> [!CAUTION]
-> Hosted Web Checkout and RBK tokens via ~~https://bakongrelay.com~~ have been **discontinued**.
-> Methods `create_webcheckout()` and `get_webcheckout()` are no longer supported. Please integrate directly using official NBC KHQR payloads and mobile deeplinks.
+> [!IMPORTANT]
+> **Web Checkout Requirements & Domain Whitelisting**  
+> Hosted Web Checkout features (`create_webcheckout()` and `get_webcheckout()`) require an active **Bakong Relay Token (`rbk...`)**.  
+> **Note:** To prevent unauthorized redirects, the domains for your `return_url` and `webhook_url` **must be whitelisted** before creating sessions. You can whitelist your domains instantly via the Telegram Bot: [👉 @bakong_relay_bot](https://t.me/bakong_relay_bot?start=relay_signup).
 
 ---
 
@@ -308,11 +308,11 @@ print("QR image saved at:", png_path)
 
 # ✨ What's New?
 
-## 1. ⚡ Bakong Relay API *(Discontinued)*
+## 1. ⚡ Bakong Relay API (Global Access)
 
-> [!NOTE]
-> The hosted service at ~~bakongrelay.com~~ has been discontinued. Developers should use official Bakong developer tokens from the National Bank of Cambodia directly from servers hosted within Cambodia.
-
+> [!TIP]
+> **Global Access via Bakong Relay API**  
+> The hosted service at **[bakongrelay.com](https://www.bakongrelay.com/)** is fully active and supported! Developers can use a Bakong Relay Token (`rbk...`) to generate KHQR, query transactions, and handle webhooks from any server worldwide without being blocked by Cambodia IP restrictions.
 ## 2. 🧠 Smart Polling Guide for `check_payment()`
 
 Starting from version `0.6.0+`, the `check_payment()` method supports a smart Dynamic Polling Delays Matrix. This optimizes API token consumption and prevents server overload, while remaining 100% non-blocking and safe for Single-Threaded systems (like standard Telegram Bots).
