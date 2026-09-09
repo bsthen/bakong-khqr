@@ -22,6 +22,8 @@ from .sdk.payload_format_indicator import PayloadFormatIndicator
 from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 
 from .sdk.version import __version__
+
+
 class KHQR:
     def __init__(self, bakong_token: str | None = None):
         self.__crc = CRC()
@@ -93,7 +95,7 @@ class KHQR:
                 if isinstance(error_data, dict) and "responseCode" in error_data:
                     return error_data
             except json.JSONDecodeError:
-                pass 
+                pass
             
             errors = {
                 400: "Bad request. Please check your input parameters and try again.",
@@ -154,7 +156,34 @@ class KHQR:
             
             if not account_id:
                 account_id = kwargs.pop("bank_account")
-                
+
+        # ── ករណីប្រើ Bakong Relay Token (RBK) ───────────────────────────
+        if self.__bakong_token and self.__bakong_token.startswith("rbk"):
+            payload = {
+                "amount": float(amount),
+                "currency": currency or "USD",
+                "account_id": account_id,
+                "merchant_name": merchant_name,
+                "merchant_city": merchant_city,
+                "store_label": store_label,
+                "phone_number": phone_number,
+                "bill_number": bill_number,
+                "terminal_label": terminal_label,
+                "static": static,
+                "expiration": expiration
+            }
+            payload = {k: v for k, v in payload.items() if v is not None}
+            response = self.__post_request("/generate_qr", payload)
+
+            if response.get("responseCode") == 0:
+                data = response.get("data")
+                if isinstance(data, dict) and "qr" in data:
+                    return data["qr"]
+
+            error_msg = response.get("responseMessage", "Failed to generate KHQR via Bakong Relay.")
+            raise ValueError(error_msg)
+
+        # ── ករណីប្រើ Bakong Developer Token (បង្កើត Offline ធម្មតា) ────────
         if not account_id:
             raise ValueError("Missing required argument: 'account_id'.")
         if not merchant_name:
