@@ -2,14 +2,14 @@
 
 <p align="center">
 <a href="https://youtu.be/24bClwP3Tzo" target="_blank" >
-        <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/dev_qr.png" width="500px" heigh="492px" alt="YouTube">
+        <img src="https://cdn.jsdelivr.net/gh/bsthen/bsthen/dev_qr.png" width="500px" height="492px" alt="YouTube">
     </a>
 </p>
 
 > [!TIP]
 > **Bakong Relay (bakongrelay.com) is Fully Active & Supported!**  
-> You can integrate Bakong KHQR using either your official **NBC Bakong Developer Token** or a **Bakong Relay Token (`rbk...`)**.  
-> With **Bakong Relay**, transactions and verification can be performed globally without requiring a Cambodia-based IP or VPS.
+> You can integrate Bakong KHQR using either an official **NBC Bakong Developer Token** or a **Bakong Relay Token (`rbk...`)**.  
+> Register an account, generate store tokens, and manage subscriptions directly via the **Client Portal**: [👉 https://dash.bakongrelay.com](https://dash.bakongrelay.com)
 
 <p align="center">
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
@@ -26,7 +26,7 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
     </a>
     <a href="https://socket.dev/pypi/package/bakong-khqr/" target="_blank">
-        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.6.1?artifact_id=tar-gz"
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.6.2?artifact_id=tar-gz"
              alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
@@ -56,7 +56,7 @@ A Python package for generating payment transactions compliant with the Bakong K
        style="vertical-align: middle;" />
   <strong style="margin: 0 6px;">Bakong Tourists</strong>
   <a href="https://apps.apple.com/kh/app/bakong-tourists/id6471774666" target="_blank">
-      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="Bakong Tourists Icon"
+      <img src="https://img.shields.io/badge/App_Store-0D96F6?style=flat&logo=app-store&logoColor=white" alt="Apple Store Icon"
            style="vertical-align: middle;" />
   </a> |
   <a href="https://play.google.com/store/apps/details?id=kh.gov.nbc.bakong.tourist" target="_blank">
@@ -68,8 +68,8 @@ A Python package for generating payment transactions compliant with the Bakong K
 
 - Python 3.8+
 - A Bakong account with full KYC verification
-- A Bakong developer token (register here: [https://api-bakong.nbc.gov.kh/register/](https://api-bakong.nbc.gov.kh/register/))
-- A VPS or hosting service located in Cambodia (required by NBC to query official Bakong APIs without HTTP 403 errors).
+- An NBC Bakong Developer Token or a **Bakong Relay Token (`rbk...`)**  
+  *(Sign up and generate your token at [dash.bakongrelay.com](https://dash.bakongrelay.com))*
 
 ## 📦 Installation
 
@@ -85,7 +85,7 @@ pip3 install --upgrade bakong-khqr
 
 ## 🚀 Usage
 
-The bakong-khqr package provides the `KHQR` class for generating QR codes, Deeplinks, MD5 hashes, and verifying Bakong KHQR transactions.
+The bakong-khqr package provides the KHQR class for generating QR codes, Deeplinks, MD5 hashes, and verifying Bakong KHQR transactions across a 4-state lifecycle (`PAID`, `SCANNED`, `UNPAID`, `EXPIRED`).
 
 ### Importing the package
 
@@ -99,26 +99,26 @@ from bakong_khqr import KHQR
 
 To generate QR code data for a transaction, create an instance of the `KHQR()` class with your official Bakong Token:
 
-- `create_qr()` method with the required parameters.
-- `generate_deeplink()` method with the required parameters.
-- `generate_md5()` method with the required parameters.
-- `check_payment()` method with the required parameters.
-- `get_payment()` method with the required parameters.
-- `check_bulk_payments()` method with the required parameters.
+- `create_qr()`: Generates EMVCo-compliant KHQR string.
+- `generate_deeplink()`: Generates deep link for banking apps.
+- `generate_md5()`: Computes unique 32-character checksum hash.
+- `check_payment()`: Verifies transaction status (`PAID`, `SCANNED`, `UNPAID`, `EXPIRED`).
+- `get_payment()`: Retrieves transaction details upon payment completion.
+- `check_bulk_payments()`: Batch verification for multiple MD5 hashes.
 
 #### 🔄 Parameter Update Notice (`bank_account` ➡️ `account_id`)
 
-To align perfectly with the official Bakong documentation, the parameter `bank_account` has been renamed to `account_id`.
+To align with official documentation, `bank_account` has been renamed to `account_id`.
 
-- Backward Compatibility: If your old code still uses `bank_account`, it will continue to work normally but a `DeprecationWarning` will be triggered. It is highly recommended to update your codebase to use `account_id`.
+- Backward Compatibility: If legacy code uses `bank_account`, it will continue to function normally with a `DeprecationWarning`. Updating to `account_id` is recommended.
 
 Example:
 
 ```python
 from bakong_khqr import KHQR
 
-# Create an instance of KHQR with Bakong Developer Token:
-khqr = KHQR("eyJhbGciOiJIUzI1NiIsI...nMhgG87BWeDg9Lu-_CKe1SMqC0")
+# Initialize KHQR with your Relay Token from [https://dash.bakongrelay.com](https://dash.bakongrelay.com):
+khqr = KHQR("rbk_your_token_here")
 
 # Generate QR code data for a transaction:
 qr_string = khqr.create_qr(
