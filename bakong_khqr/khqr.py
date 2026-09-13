@@ -1,3 +1,5 @@
+# khqr.py
+
 import time
 import json
 import warnings
@@ -41,7 +43,8 @@ class KHQR:
         self.__payload_format_indicator = PayloadFormatIndicator()
         self.__global_unique_identifier = GlobalUniqueIdentifier()
         self.__bakong_token = bakong_token
-        # Set the API endpoint based on the provided token
+
+        # កំណត់ Endpoint អាស្រ័យលើ Token (Bakong Relay Token ឬ Official Developer Token)
         if bakong_token and bakong_token.startswith("rbk"):
             self.__bakong_api = "https://api.bakongrelay.com/v1"
         else:
@@ -60,7 +63,6 @@ class KHQR:
         self.__check_bakong_token()
         
         parsed_url = urlparse(self.__bakong_api)
-        # Using 'with' or closing ensures the socket closes even if an error occurs
         with closing(http.client.HTTPSConnection(parsed_url.netloc, timeout=10)) as conn:
             headers = {
                 "Authorization": f"Bearer {self.__bakong_token}",
@@ -145,7 +147,6 @@ class KHQR:
         Returns:
             str: A formatted EMVCo-compliant KHQR string.
         """
-        
         if "bank_account" in kwargs:
             warnings.warn(
                 "The 'bank_account' parameter is deprecated and will be removed in future versions. "
@@ -153,11 +154,9 @@ class KHQR:
                 DeprecationWarning,
                 stacklevel=2
             )
-            
             if not account_id:
                 account_id = kwargs.pop("bank_account")
 
-        # ── ករណីប្រើ Bakong Relay Token (RBK) ───────────────────────────
         if self.__bakong_token and self.__bakong_token.startswith("rbk"):
             payload = {
                 "amount": float(amount),
@@ -183,7 +182,6 @@ class KHQR:
             error_msg = response.get("responseMessage", "Failed to generate KHQR via Bakong Relay.")
             raise ValueError(error_msg)
 
-        # ── ករណីប្រើ Bakong Developer Token (បង្កើត Offline ធម្មតា) ────────
         if not account_id:
             raise ValueError("Missing required argument: 'account_id'.")
         if not merchant_name:
@@ -198,7 +196,7 @@ class KHQR:
         
         qr_data = self.__payload_format_indicator.value()
         qr_data += self.__point_of_initiation.static() if static else self.__point_of_initiation.dynamic()
-        qr_data += self.__global_unique_identifier.value(account_id)  # <-- ប្តូរមកប្រើ account_id
+        qr_data += self.__global_unique_identifier.value(account_id)
         qr_data += self.__mcc.value()
         qr_data += self.__transaction_currency.value(currency)
         if not static:
@@ -221,10 +219,7 @@ class KHQR:
         
         return qr_data
 
-    def generate_md5(
-        self, 
-        qr: str
-        ) -> str:
+    def generate_md5(self, qr: str) -> str:
         """
         Generate an MD5 hash for the QR code.
 
@@ -245,45 +240,33 @@ class KHQR:
         appDeepLinkCallback: str | None = None, 
         appIconUrl: str = "https://bakong.nbc.gov.kh/images/logo.svg", 
         appName: str = "MyAppName",
-        callback: str | None = None # Deprecated parameter
+        callback: str | None = None
     ) -> str | None:
         """
         Generate a deep link for the KHQR.
-
-        .. deprecated:: 0.5.7
-            The `callback` parameter is deprecated. Use `appDeepLinkCallback` 
-            to align with the National Bank of Cambodia (NBC) standard.
 
         Args:
             qr (str): QR code string generated from `create_qr()` method.
             appDeepLinkCallback (str, optional): The standard callback URL. 
                 Defaults to "https://bakong.nbc.org.kh".
             appIconUrl (str, optional): URL for the app icon.
-                Defaults to "https://bakong.nbc.gov.kh/images/logo.svg".
             appName (str, optional): Name of the application.
-                Defaults to "MyAppName".
-            callback (str, optional): **Deprecated alias** for appDeepLinkCallback.
 
         Returns:
             str | None: The generated Bakong short-link URL or None if failed.
         """
-
-        # Handle Deprecation Logic
         if callback is not None:
             warnings.warn(
                 f"\n\n{'!'*31} DEPRECATION WARNING {'!'*31}\n"
                 f"Parameter 'callback' is deprecated in bakong-khqr.\n"
                 f"Please update your code to use 'appDeepLinkCallback' instead.\n"
-                f"Example: deeplink = khqr.generate_deeplink(qr=qr_string, appDeepLinkCallback='...') \n"
                 f"{'!'*83}\n",
                 DeprecationWarning,
                 stacklevel=2
             )
-            # Use 'callback' value only if the new param wasn't provided
             if appDeepLinkCallback is None:
                 appDeepLinkCallback = callback
 
-        # Set default if neither was provided
         if appDeepLinkCallback is None:
             appDeepLinkCallback = "https://bakong.nbc.org.kh"
 
@@ -307,46 +290,60 @@ class KHQR:
     def check_payment(
         self, 
         md5: str,
-        start_time: float = None
+        start_time: float | None = None
     ) -> str | tuple[str, int]:
         """
         Check the payment status of a transaction by its MD5 hash.
-        Supports smart dynamic polling delays based on the Dynamic Windows Matrix.
+        Supports 4 transaction states: PAID, SCANNED, UNPAID, and EXPIRED.
 
         Args:
             md5 (str): The MD5 hash of the QR code generated via `generate_md5()`.
             start_time (float, optional): The timestamp (time.time()) when the transaction 
-                                        or QR code was created. If provided, returns a tuple 
-                                        containing the status and the suggested next delay.
+                or QR code was created. If provided, returns a tuple containing the status 
+                and the suggested next polling delay in seconds.
             
         Returns:
             str | tuple[str, int]: 
-                - If `start_time` is None: Returns a string status (`PAID` or `UNPAID`).
+                - If `start_time` is None: Returns a string status (`PAID`, `SCANNED`, `EXPIRED`, or `UNPAID`).
                 - If `start_time` is provided: Returns a tuple `(status, next_delay)` 
-                where `next_delay` is the suggested sleep time in seconds.
-        
-        Note:
-            A status of **UNPAID** may indicate that the transaction is still pending 
-            or that the QR code has not been scanned yet.
+                  where `next_delay` is the suggested sleep time in seconds.
         """
-        
         payload = {
             "md5": md5
         }
         
-        # Send request to Bakong Relay API to check transaction status
         response = self.__post_request("/check_transaction_by_md5", payload)
-        status = "PAID" if response.get("responseCode") == 0 else "UNPAID"
+        data = response.get("data") if isinstance(response.get("data"), dict) else {}
+        resp_code = response.get("responseCode")
+
+        raw_status = str(data.get("status", "")).upper()
+        raw_tracking = str(data.get("trackingStatus", "")).upper()
+
+        # ⚡️ ការវិនិច្ឆ័យ Status ទាំង ៤ ដោយភាពច្បាស់លាស់
+        if raw_status == "SCANNED" or raw_tracking == "SCANNED":
+            status = "SCANNED"
+        elif raw_status == "EXPIRED" or raw_tracking == "EXPIRED":
+            status = "EXPIRED"
+        elif raw_status == "PAID" or raw_tracking == "SUCCESS":
+            status = "PAID"
+        elif resp_code == 0 and raw_status != "SCANNED":
+            # គាំទ្រទាំង Official NBC Bakong (ដែលគ្មាន field status តែ responseCode == 0)
+            status = "PAID"
+        else:
+            status = "UNPAID"
         
         if start_time is None:
             return status
 
-        if status == "PAID":
+        # បើចប់សព្វគ្រប់ (PAID ឬ EXPIRED) មិនចាំបាច់ Poll បន្តទៀតទេ (Delay = 0)
+        if status in ("PAID", "EXPIRED"):
             return status, 0
             
         elapsed = time.time() - start_time
         
-        if elapsed <= 300:
+        if status == "SCANNED":
+            next_delay = 3
+        elif elapsed <= 300:
             next_delay = 5
         elif elapsed <= 900:
             next_delay = 10
@@ -360,20 +357,18 @@ class KHQR:
     def get_payment(
         self, 
         md5: str
-        ) -> dict[str, Any] | None:
+    ) -> dict[str, Any] | None:
         """
         Retrieve details for a specific paid transaction using its MD5 hash.
 
         Args:
-            md5 (str): The MD5 hash of the QR code, typically generated 
-                via the `generate_md5()` method.
+            md5 (str): The MD5 hash of the QR code.
         
         Returns:
             dict[str, Any] | None: A dictionary containing transaction details 
-                (e.g., amount, currency, sender) if the payment is successful. 
-                Returns `None` if the transaction is pending or not found.
+                if the payment is confirmed as PAID. Returns `None` if the transaction 
+                is still pending, scanned, expired, or not found.
         """
-        
         payload = {
             "md5": md5
         }
@@ -382,7 +377,12 @@ class KHQR:
         
         if response.get("responseCode") == 0:
             data = response.get("data")
-            return data if isinstance(data, dict) else None
+            if isinstance(data, dict):
+                # 🔒 ការពារកុំឱ្យច្រឡំប្រគល់ទិន្នន័យនៅពេលទើបតែ SCANNED
+                status = str(data.get("status", "")).lower()
+                if status == "scanned":
+                    return None
+                return data
         return None
     
     def check_bulk_payments(
@@ -393,16 +393,11 @@ class KHQR:
         Check the transaction status for multiple MD5 hashes.
 
         Args:
-            md5_list (list[str]): A list of MD5 hashes to verify. 
-                Each hash should be generated using the `generate_md5()` method.
+            md5_list (list[str]): A list of MD5 hashes to verify.
 
         Returns:
             list[str]: A list containing only the MD5 hashes of transactions 
                 that have been confirmed as paid.
-
-        Raises:
-            ValueError: If the `md5_list` contains more than 50 items, 
-                as per Bakong's API limits.
         """
         if len(md5_list) > 50:
             raise ValueError("The md5_list exceeds the allowed limit of 50 hashes per request.")
@@ -423,32 +418,17 @@ class KHQR:
         return paid_hashes
     
     def qr_image(
-        self, qr: str,
+        self, 
+        qr: str,
         format: str = "png",
         output_path: str | None = None,
-        ) -> str | bytes:
+    ) -> str | bytes:
         """
         Generate a styled KHQR image from the QR string.
-
-        Args:
-            qr (str): The KHQR string generated from the `create_qr()` method.
-            output_path (str, optional): The file path where the image will be saved. 
-                If not provided, the method returns a temporary file path or data.
-            format (str): The export format. Supported: 'png', 'jpeg', 'webp', 
-                'bytes', 'base64', or 'base64_uri'. Defaults to 'png'.
-
-        Returns:
-            str | bytes: The file path (str) if saved to disk, or the raw data 
-                (bytes/base64 string) depending on the requested format.
-
-        Raises:
-            ImportError: If the required imaging libraries (Pillow/qrcode) are not installed.
-            ValueError: If an unsupported format is requested.
         """
-
         result = self.__image_tools.generate(qr)
 
-        if format.lower() == "jpeg" or format.lower() == "jpg":
+        if format.lower() in ("jpeg", "jpg"):
             return result.to_jpeg(output_path)
         elif format.lower() == "webp":
             return result.to_webp(output_path)
@@ -476,25 +456,6 @@ class KHQR:
     ) -> dict[str, Any]:
         """
         Create a new Bakong Web Checkout session.
-        
-        ⚠️ IMPORTANT: The domains for `return_url` and `webhook_url` MUST be whitelisted.
-        To whitelist your domains, please use the Telegram Bot: 
-        👉 https://t.me/bakong_relay_bot?start=relay_signup
-
-        Args:
-            trans_id (str): Your platform's unique transaction or tracking identifier.
-            account_id (str): The recipient Bakong Account ID (e.g., merchant@bank).
-            merchant_name (str): The display name of the merchant.
-            merchant_city (str): The merchant operating city (e.g., 'Phnom Penh').
-            amount (float): Total transaction value to collect.
-            currency (str): The target currency ('USD' or 'KHR').
-            return_url (str): The web destination to send the user after payment.
-            webhook_url (str): Server-to-server callback endpoint for status events.
-            lang (str, optional): Interface language ('km', 'en', 'zh'). Defaults to 'km'.
-            ttl (int, optional): Session timeout in minutes (1 to 1440). Defaults to 5.
-
-        Returns:
-            dict: The API response containing the 'checkout_url', 'session_id', and 'iframe_snippet'.
         """
         self.__check_relay_token()
         
@@ -519,7 +480,6 @@ class KHQR:
         
         response = self.__post_request("/web_checkouts/create", payload)
         
-        # Optionally enhance the error message if the domain is not whitelisted
         if response.get("responseCode") == 1:
             msg = response.get("responseMessage", "")
             if "not whitelisted" in msg or "banned" in msg:
@@ -534,13 +494,8 @@ class KHQR:
         """
         Retrieve transaction details and status of a specific Web Checkout session.
 
-        Args:
-            session_id (str): The unique alphanumeric web session identifier 
-                              generated during the `create_webcheckout` process.
-
         Returns:
-            dict: The API response containing the checkout status ('UNPAID', 'PAID', or 'EXPIRED')
-                  and comprehensive transaction data if successfully paid.
+            dict: The API response containing the checkout status ('UNPAID', 'SCANNED', 'PAID', or 'EXPIRED').
         """
         self.__check_relay_token()
         
