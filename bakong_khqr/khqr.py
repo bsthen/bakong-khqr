@@ -1,5 +1,3 @@
-# khqr.py
-
 import time
 import json
 import warnings
@@ -42,13 +40,14 @@ class KHQR:
         self.__additional_data_field = AdditionalDataField()
         self.__payload_format_indicator = PayloadFormatIndicator()
         self.__global_unique_identifier = GlobalUniqueIdentifier()
-        self.__bakong_token = bakong_token
+        self.__bakong_token = bakong_token.strip() if bakong_token else None
 
-        # កំណត់ Endpoint អាស្រ័យលើ Token (Bakong Relay Token ឬ Official Developer Token)
-        if bakong_token and bakong_token.startswith("rbk"):
+        if self.__bakong_token and self.__bakong_token.startswith("rbk"):
             self.__bakong_api = "https://api.bakongrelay.com/v1"
+            self.__is_relay = True
         else:
             self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
+            self.__is_relay = False
     
     def __check_relay_token(self):
         """Helper method to ensure the token is a Bakong Relay token."""
@@ -63,7 +62,7 @@ class KHQR:
         self.__check_bakong_token()
         
         parsed_url = urlparse(self.__bakong_api)
-        with closing(http.client.HTTPSConnection(parsed_url.netloc, timeout=10)) as conn:
+        with closing(http.client.HTTPSConnection(parsed_url.netloc, timeout=12)) as conn:
             headers = {
                 "Authorization": f"Bearer {self.__bakong_token}",
                 "Content-Type": "application/json",
@@ -75,13 +74,13 @@ class KHQR:
             try:
                 conn.request("POST", full_path, body=json.dumps(payload), headers=headers)
                 response = conn.getresponse()
-                response_data = response.read().decode()
-                
+                response_data = response.read().decode("utf-8")
             except TimeoutError:
-                raise ValueError("Bakong API took too long to respond. Please check transaction status later.")
-            
+                target = "Bakong Relay API" if self.__is_relay else "Bakong API"
+                raise ValueError(f"{target} took too long to respond. Please check transaction status later.")
             except Exception as e:
-                raise ValueError(f"Failed to connect to Bakong API: {e}")
+                target = "Bakong Relay API" if self.__is_relay else "Bakong API"
+                raise ValueError(f"Failed to connect to {target}: {e}")
 
             if response.status in (200, 201):
                 try:
@@ -92,6 +91,40 @@ class KHQR:
                 except json.JSONDecodeError:
                     raise ValueError(f"Bakong returned invalid JSON: {response_data}")
             
+            if self.__is_relay:
+                try:
+                    error_data = json.loads(response_data)
+                    if isinstance(error_data, dict):
+                        err_code = error_data.get("errorCode")
+                        err_msg = error_data.get("responseMessage", "")
+
+                        if endpoint == "/check_transaction_by_md5" and (response.status == 404 or (response.status == 400 and err_code == 3)):
+                            return error_data
+
+                        if response.status == 401 or err_code == 6:
+                            raise ValueError(f"Unauthorized: {err_msg or 'Token is missing, expired, invalid, or has reached its usage limit.'}")
+                        elif response.status == 429 or err_code == 429:
+                            raise ValueError(f"Rate limit exceeded: {err_msg}")
+                        elif response.status == 503 or err_code == 99:
+                            raise ValueError(f"Service maintenance: {err_msg or 'Service is currently undergoing maintenance.'}")
+                        elif err_code == 10:
+                            raise ValueError(f"Store Configuration Error: {err_msg}")
+                        elif err_code == 14:
+                            raise ValueError(f"Validation Error: {err_msg}")
+                        elif err_msg:
+                            raise ValueError(err_msg)
+                except json.JSONDecodeError:
+                    pass
+
+                relay_errors = {
+                    400: "Bad request to Bakong Relay. Please check your parameters.",
+                    401: "Unauthorized: Token is missing, expired, invalid, or has reached its usage limit.",
+                    429: "Too many requests to Bakong Relay. Please wait before trying again.",
+                    500: "Bakong Relay encountered an internal server error.",
+                    503: "Bakong Relay is currently undergoing maintenance. Please try again shortly."
+                }
+                raise ValueError(relay_errors.get(response.status, f"HTTP {response.status}: {response_data}"))
+
             try:
                 error_data = json.loads(response_data)
                 if isinstance(error_data, dict) and "responseCode" in error_data:
@@ -131,16 +164,16 @@ class KHQR:
         Create a KHQR string compliant with the Bakong system.
 
         Args:
-            account_id (str): The recipient Bakong Account ID (e.g., 'your_name@bank').
-            merchant_name (str): Name of the merchant (e.g., 'Your Name').
-            merchant_city (str): City of the merchant (e.g., 'Phnom Penh').
+            account_id (str, optional): The recipient Bakong Account ID (e.g., 'your_name@bank').
+            merchant_name (str, optional): Name of the merchant (e.g., 'Your Name').
+            merchant_city (str, optional): City of the merchant (e.g., 'Phnom Penh').
             amount (float | int): Transaction amount.
-            currency (str): Currency code, either 'USD' or 'KHR'.
+            currency (str, optional): Currency code, either 'USD' or 'KHR'.
             store_label (str, optional): Store label or ID.
             phone_number (str, optional): Merchant's mobile number.
             bill_number (str, optional): Unique bill or transaction reference.
             terminal_label (str, optional): Terminal ID or a short description.
-            static (bool): Set to **True** for a static QR (no amount); Defaults to **False** (Dynamic).
+            static (bool): Set to True for a static QR (no amount); Defaults to False (Dynamic).
             expiration (int): Expiration time in days. Defaults to 1 day.
             **kwargs: Used for backward compatibility (e.g., `bank_account`).
 
@@ -157,21 +190,31 @@ class KHQR:
             if not account_id:
                 account_id = kwargs.pop("bank_account")
 
-        if self.__bakong_token and self.__bakong_token.startswith("rbk"):
+        if self.__is_relay:
             payload = {
-                "amount": float(amount),
-                "currency": currency or "USD",
-                "account_id": account_id,
-                "merchant_name": merchant_name,
-                "merchant_city": merchant_city,
-                "store_label": store_label,
-                "phone_number": phone_number,
-                "bill_number": bill_number,
-                "terminal_label": terminal_label,
-                "static": static,
-                "expiration": expiration
+                "amount": float(amount)
             }
-            payload = {k: v for k, v in payload.items() if v is not None}
+            if account_id is not None:
+                payload["account_id"] = account_id
+            if merchant_name is not None:
+                payload["merchant_name"] = merchant_name
+            if merchant_city is not None:
+                payload["merchant_city"] = merchant_city
+            if currency is not None:
+                payload["currency"] = currency
+            if store_label is not None:
+                payload["store_label"] = store_label
+            if phone_number is not None:
+                payload["phone_number"] = phone_number
+            if bill_number is not None:
+                payload["bill_number"] = bill_number
+            if terminal_label is not None:
+                payload["terminal_label"] = terminal_label
+            if static:
+                payload["static"] = static
+            if expiration != 1:
+                payload["expiration"] = expiration
+
             response = self.__post_request("/generate_qr", payload)
 
             if response.get("responseCode") == 0:
@@ -251,6 +294,7 @@ class KHQR:
                 Defaults to "https://bakong.nbc.org.kh".
             appIconUrl (str, optional): URL for the app icon.
             appName (str, optional): Name of the application.
+            callback (str, optional): Deprecated callback parameter.
 
         Returns:
             str | None: The generated Bakong short-link URL or None if failed.
@@ -294,7 +338,6 @@ class KHQR:
     ) -> str | tuple[str, int]:
         """
         Check the payment status of a transaction by its MD5 hash.
-        Supports 4 transaction states: PAID, SCANNED, UNPAID, and EXPIRED.
 
         Args:
             md5 (str): The MD5 hash of the QR code generated via `generate_md5()`.
@@ -304,7 +347,7 @@ class KHQR:
             
         Returns:
             str | tuple[str, int]: 
-                - If `start_time` is None: Returns a string status (`PAID`, `SCANNED`, `EXPIRED`, or `UNPAID`).
+                - If `start_time` is None: Returns a string status ('PAID', 'SCANNED', 'EXPIRED', or 'UNPAID').
                 - If `start_time` is provided: Returns a tuple `(status, next_delay)` 
                   where `next_delay` is the suggested sleep time in seconds.
         """
@@ -316,18 +359,43 @@ class KHQR:
         data = response.get("data") if isinstance(response.get("data"), dict) else {}
         resp_code = response.get("responseCode")
 
-        raw_status = str(data.get("status", "")).upper()
-        raw_tracking = str(data.get("trackingStatus", "")).upper()
+        if self.__is_relay:
+            raw_status = str(data.get("status", "")).upper()
+            raw_tracking = str(data.get("trackingStatus", "")).upper()
 
-        # ⚡️ ការវិនិច្ឆ័យ Status ទាំង ៤ ដោយភាពច្បាស់លាស់
-        if raw_status == "SCANNED" or raw_tracking == "SCANNED":
-            status = "SCANNED"
-        elif raw_status == "EXPIRED" or raw_tracking == "EXPIRED":
-            status = "EXPIRED"
-        elif raw_status == "PAID" or raw_tracking == "SUCCESS":
-            status = "PAID"
-        elif resp_code == 0 and raw_status != "SCANNED":
-            # គាំទ្រទាំង Official NBC Bakong (ដែលគ្មាន field status តែ responseCode == 0)
+            if raw_status == "SCANNED" or raw_tracking == "SCANNED":
+                status = "SCANNED"
+            elif raw_status == "EXPIRED" or raw_tracking == "EXPIRED":
+                status = "EXPIRED"
+            elif raw_status == "PAID" or raw_tracking == "SUCCESS":
+                status = "PAID"
+            elif resp_code == 0:
+                status = "PAID"
+            else:
+                status = "UNPAID"
+
+            if start_time is None:
+                return status
+
+            if status in ("PAID", "EXPIRED"):
+                return status, 0
+
+            elapsed = time.time() - start_time
+
+            if status == "SCANNED":
+                next_delay = 3
+            elif elapsed <= 300:
+                next_delay = 5
+            elif elapsed <= 900:
+                next_delay = 10
+            elif elapsed <= 3600:
+                next_delay = 15
+            else:
+                next_delay = 300
+
+            return status, next_delay
+
+        if resp_code == 0:
             status = "PAID"
         else:
             status = "UNPAID"
@@ -335,15 +403,12 @@ class KHQR:
         if start_time is None:
             return status
 
-        # បើចប់សព្វគ្រប់ (PAID ឬ EXPIRED) មិនចាំបាច់ Poll បន្តទៀតទេ (Delay = 0)
-        if status in ("PAID", "EXPIRED"):
+        if status == "PAID":
             return status, 0
             
         elapsed = time.time() - start_time
         
-        if status == "SCANNED":
-            next_delay = 3
-        elif elapsed <= 300:
+        if elapsed <= 300:
             next_delay = 5
         elif elapsed <= 900:
             next_delay = 10
@@ -366,7 +431,7 @@ class KHQR:
         
         Returns:
             dict[str, Any] | None: A dictionary containing transaction details 
-                if the payment is confirmed as PAID. Returns `None` if the transaction 
+                if the payment is confirmed as PAID. Returns None if the transaction 
                 is still pending, scanned, expired, or not found.
         """
         payload = {
@@ -378,10 +443,11 @@ class KHQR:
         if response.get("responseCode") == 0:
             data = response.get("data")
             if isinstance(data, dict):
-                # 🔒 ការពារកុំឱ្យច្រឡំប្រគល់ទិន្នន័យនៅពេលទើបតែ SCANNED
-                status = str(data.get("status", "")).lower()
-                if status == "scanned":
-                    return None
+                if self.__is_relay:
+                    status = str(data.get("status", "")).lower()
+                    tracking = str(data.get("trackingStatus", "")).upper()
+                    if status == "scanned" or tracking == "SCANNED":
+                        return None
                 return data
         return None
     
@@ -410,7 +476,7 @@ class KHQR:
         
         paid_hashes = []
         for item in data_list:
-            if isinstance(item, dict) and item.get("status") == "SUCCESS":
+            if isinstance(item, dict) and item.get("status") in ("SUCCESS", "PAID"):
                 md5 = item.get("md5")
                 if isinstance(md5, str):
                     paid_hashes.append(md5)
@@ -425,6 +491,14 @@ class KHQR:
     ) -> str | bytes:
         """
         Generate a styled KHQR image from the QR string.
+
+        Args:
+            qr (str): Raw KHQR string.
+            format (str): Desired output format ('png', 'jpeg', 'webp', 'bytes', 'base64', 'base64_uri').
+            output_path (str, optional): Target file path if saving to disk.
+
+        Returns:
+            str | bytes: File path, base64 string, or raw bytes depending on the chosen format.
         """
         result = self.__image_tools.generate(qr)
 
@@ -456,6 +530,21 @@ class KHQR:
     ) -> dict[str, Any]:
         """
         Create a new Bakong Web Checkout session.
+
+        Args:
+            trans_id (str): Unique transaction tracking identifier.
+            account_id (str): Destination Bakong Account ID.
+            merchant_name (str): Merchant display name.
+            merchant_city (str): Merchant city.
+            amount (float): Transaction amount.
+            currency (str): Currency code ('USD' or 'KHR').
+            return_url (str): Redirect URL upon payment completion.
+            webhook_url (str): Server callback URL for instantaneous events.
+            lang (str): Interface language ('km', 'en', 'zh'). Defaults to 'km'.
+            ttl (int): Session Time-To-Live in minutes. Defaults to 5.
+
+        Returns:
+            dict[str, Any]: Web Checkout creation response.
         """
         self.__check_relay_token()
         
@@ -494,8 +583,11 @@ class KHQR:
         """
         Retrieve transaction details and status of a specific Web Checkout session.
 
+        Args:
+            session_id (str): The alphanumeric session ID.
+
         Returns:
-            dict: The API response containing the checkout status ('UNPAID', 'SCANNED', 'PAID', or 'EXPIRED').
+            dict[str, Any]: Checkout session status and transaction details.
         """
         self.__check_relay_token()
         
