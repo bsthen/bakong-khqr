@@ -26,7 +26,7 @@ A Python package for generating payment transactions compliant with the Bakong K
         <img src="https://img.shields.io/pypi/v/bakong-khqr?color=%2334D058&label=pypi%20package" alt="PyPI version">
     </a>
     <a href="https://socket.dev/pypi/package/bakong-khqr/" target="_blank">
-        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.6.3?artifact_id=tar-gz"
+        <img src="https://badge.socket.dev/pypi/package/bakong-khqr/0.6.4?artifact_id=tar-gz"
              alt="Socket Security">
     </a>
     <a href="https://pepy.tech/projects/bakong-khqr" target="_blank" >
@@ -91,6 +91,7 @@ pip3 install --upgrade bakong-khqr
 | **Hosting & IP Restriction** | **Global Access** (No Cambodia IP restrictions) | Restricted to Cambodia IP addresses |
 | **`create_qr()` Requirements** | Only `amount` is strictly required; merchant and currency details are auto-resolved from your RBK Token. | Requires `account_id`, `merchant_name`, `merchant_city`, `amount`, and `currency`. |
 | **Amount Validation** | Handled directly by Relay Backend (Min USD $0.01 / Min KHR 100). | Static or Dynamic offline EMVCo generation. |
+| **Web Checkout Support** | Integrated directly into `create_qr(return_url=..., success_url=...)`. | Not supported. |
 | **Transaction States** | **4 States:** `PAID`, `SCANNED`, `UNPAID`, `EXPIRED` | **2 States:** `PAID`, `UNPAID` |
 | **Polling Optimization** | `SCANNED` = 3s delay; `PAID`/`EXPIRED` = 0s (exit loop). | `PAID` = 0s; `UNPAID` = 5s–300s window matrix. |
 | **Gateway Error Handling** | Detailed errors (Token expired/over-limit, Maintenance, Rate limit, Store config). | Standard NBC error messages. |
@@ -103,32 +104,41 @@ pip3 install --upgrade bakong-khqr
 
 When using an `rbk...` token, `create_qr()` only requires `amount`. All merchant and currency details are automatically retrieved from your Store Link configured in the Bakong Relay dashboard.
 
+The returned `res` object inherits directly from `str` (acting as the raw KHQR string) while also providing access to metadata attributes (`.qr`, `.md5`, `.tran_id`, `.checkout_url`):
+
 ```python
 import time
 from bakong_khqr import KHQR
 
 # Initialize with your Bakong Relay Store Token
-khqr = KHQR("rbk_live_xxxxxxxxxxxxxxxxxxxx")
+khqr = KHQR("rbk_xxxxxxxxxxxxxxxxxxxx")
 
-# 1. Generate QR Code (amount only; backend auto-detects currency & merchant info)
-qr_string = khqr.create_qr(amount=1.50)
-print("KHQR String:", qr_string)
+# 1. Generate Dynamic KHQR (amount only; backend auto-detects currency & merchant info)
+res = khqr.create_qr(amount=1.50)
+print("KHQR String :", str(res))       # or res.qr
+print("Transaction MD5:", res.md5)     # MD5 hash for status verification
+print("Bill Number    :", res.tran_id) # Unique bill/transaction reference
 
-# 2. Get MD5 Checksum
-md5 = khqr.generate_md5(qr_string)
-print("Transaction MD5:", md5)
+# Optional: Generate with Hosted Web Checkout
+checkout_res = khqr.create_qr(
+    amount=1.50,
+    return_url="https://yourstore.com/checkout/return",
+    success_url="https://yourstore.com/checkout/success",
+    cancel_url="https://yourstore.com/checkout/cancel"
+)
+print("Web Checkout URL:", checkout_res.checkout_url)
 
-# 3. Smart Polling Loop (Handles PAID, SCANNED, UNPAID, and EXPIRED)
+# 2. Smart Polling Loop (Handles PAID, SCANNED, UNPAID, and EXPIRED)
 start_time = time.time()
 timeout_seconds = 10 * 60  # 10 minutes
 
 while True:
-    status, next_delay = khqr.check_payment(md5, start_time=start_time)
+    status, next_delay = khqr.check_payment(res.md5, start_time=start_time)
     print(f"Current Status: {status} | Next check in: {next_delay}s")
 
     if status == "PAID":
         print("🎉 Payment Successful!")
-        payment_info = khqr.get_payment(md5)
+        payment_info = khqr.get_payment(res.md5)
         print("Transaction Details:", payment_info)
         break
 
@@ -190,8 +200,8 @@ Generate a direct link to open the mobile banking app:
 ```python
 deeplink = khqr.generate_deeplink(
     qr=qr_string,
-    appDeepLinkCallback="https://your_website.com/checkout/success](https://your_website.com/checkout/success)",
-    appIconUrl="https://your_website.com/images/logo.png](https://your_website.com/images/logo.png)",
+    appDeepLinkCallback="https://your_website.com/checkout/success",
+    appIconUrl="https://your_website.com/images/logo.png",
     appName="MyStore"
 )
 print("Deeplink URL:", deeplink)
@@ -251,7 +261,7 @@ The `check_payment()` method dynamically adjusts `next_delay` when `start_time` 
 
 ## 🛠️ Method Reference
 
-- **`create_qr(...) -> str`**: Creates an EMVCo-compliant KHQR string. For `rbk` tokens, requests `api.bakongrelay.com`; for NBC tokens or offline use, compiles locally.
+- **`create_qr(...) -> KHQRResponse`**: Creates an EMVCo-compliant KHQR string. For `rbk` tokens, requests `api.bakongrelay.com`; for NBC tokens or offline use, compiles locally. Returns a `KHQRResponse` object that acts as a string and exposes `.qr`, `.md5`, `.tran_id`, and `.checkout_url`.
 - **`generate_md5(qr: str) -> str`**: Computes the 32-character hexadecimal MD5 hash for the QR code.
 - **`generate_deeplink(...) -> str | None`**: Generates a mobile banking deep link.
 - **`check_payment(md5: str, start_time: float | None = None) -> str | tuple[str, int]`**:
@@ -260,14 +270,25 @@ The `check_payment()` method dynamically adjusts `next_delay` when `start_time` 
 - **`get_payment(md5: str) -> dict | None`**: Returns transaction details if confirmed `PAID`. Returns `None` if `SCANNED`, `UNPAID`, or `EXPIRED`.
 - **`check_bulk_payments(md5_list: list[str]) -> list[str]`**: Verifies an array of MD5 hashes (Max 50) and returns a list of paid hashes.
 - **`qr_image(qr: str, format: str = "png", output_path: str | None = None) -> str | bytes`**: Exports styled KHQR image in PNG, JPEG, WebP, raw bytes, Base64, or Data URI format.
+- **`create_webcheckout(...) [DEPRECATED]`**: Deprecated in v0.6.4. Use `create_qr(amount=..., return_url=..., success_url=...)` instead.
+- **`get_webcheckout(...) [DEPRECATED]`**: Deprecated in v0.6.4. Use `check_payment(md5)` or `get_payment(md5)` instead.
 
 ---
 
-## ⚠️ Web Checkout Integration (Coming soon)
+## 🌐 Web Checkout Integration (v0.6.4+)
 
-> [!IMPORTANT]
-> Hosted Web Checkout features (`create_webcheckout()` and `get_webcheckout()`) require an active **Bakong Relay Token (`rbk...`)**.  
-> We are developing this feature.
+> [!NOTE]
+> Hosted Web Checkout is now directly unified into `create_qr()`.  
+> To enable Web Checkout, pass `return_url`, `success_url`, or `cancel_url` to `create_qr()`. The target URLs must match the verified domain configured in your store dashboard at [dash.bakongrelay.com](https://dash.bakongrelay.com).
+
+```python
+res = khqr.create_qr(
+    amount=10.0,
+    return_url="https://yourstore.com/checkout/return",
+    success_url="https://yourstore.com/checkout/success"
+)
+print("Checkout URL:", res.checkout_url)
+```
 
 ---
 
@@ -277,8 +298,6 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 
 ## 📬 Contact & Support
 
-- **Author**: BAN Sothen
-- **Email**: [bansokthen@gmail.com](mailto:bansokthen@gmail.com)
 - **Telegram Support**: [@bakongRelaySupport](https://t.me/bakongRelaySupport/)
 - **Buy Me a Coffee**: [buymeacoffee.com/bsthen](https://buymeacoffee.com/bsthen)
 
