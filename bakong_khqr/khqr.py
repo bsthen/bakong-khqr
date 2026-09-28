@@ -1,8 +1,10 @@
+# bakong_khqr/khqr.py
+
 import time
 import json
 import warnings
 import http.client
-from typing import Any
+from typing import Any, Union
 from urllib.parse import urlparse
 from contextlib import closing
 
@@ -22,6 +24,77 @@ from .sdk.payload_format_indicator import PayloadFormatIndicator
 from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 
 from .sdk.version import __version__
+
+
+class KHQRResponse(str):
+    """
+    An enhanced KHQR string response that seamlessly inherits from Python's built-in `str`.
+    
+    It maintains 100% backward compatibility by acting directly as the raw KHQR string 
+    (e.g., in print(), len(), slicing, or passing to qr_image()), while simultaneously 
+    exposing all metadata returned by the Bakong Relay API server:
+
+    Attributes:
+        qr (str): The raw EMVCo KHQR code string.
+        md5 (str | None): The 32-character MD5 checksum hash.
+        tran_id (str | None): Unique transaction / bill tracking identifier.
+        checkout_url (str | None): The Web Checkout URL (None if URLs omitted or unverified).
+        raw (dict): The complete raw JSON response returned by the server.
+    """
+    qr: str
+    md5: str | None
+    tran_id: str | None
+    checkout_url: str | None
+    raw: dict[str, Any]
+
+    def __new__(
+        cls,
+        qr: str,
+        md5: str | None = None,
+        tran_id: str | None = None,
+        checkout_url: str | None = None,
+        raw: dict[str, Any] | None = None
+    ):
+        instance = super().__new__(cls, qr)
+        instance.qr = qr
+        instance.md5 = md5
+        instance.tran_id = tran_id
+        instance.checkout_url = checkout_url
+        instance.raw = raw or {}
+        return instance
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Allow dict-like access via .get(key)."""
+        if hasattr(self, key):
+            val = getattr(self, key)
+            if val is not None:
+                return val
+        data = self.raw.get("data")
+        if isinstance(data, dict) and key in data:
+            return data[key]
+        return self.raw.get(key, default)
+
+    def __getitem__(self, item: Any) -> Any:
+        """Allow dict-like subscription (e.g. res['checkout_url']) while preserving str slicing."""
+        if isinstance(item, str):
+            if item in ("qr", "md5", "tran_id", "checkout_url"):
+                return getattr(self, item)
+            data = self.raw.get("data")
+            if isinstance(data, dict) and item in data:
+                return data[item]
+            if item in self.raw:
+                return self.raw[item]
+            raise KeyError(item)
+        return super().__getitem__(item)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the response object to a standard Python dictionary."""
+        return {
+            "qr": self.qr,
+            "md5": self.md5,
+            "tran_id": self.tran_id,
+            "checkout_url": self.checkout_url
+        }
 
 
 class KHQR:
@@ -52,7 +125,7 @@ class KHQR:
     def __check_relay_token(self):
         """Helper method to ensure the token is a Bakong Relay token."""
         if not self.__bakong_token or not self.__bakong_token.startswith("rbk"):
-            raise ValueError("A valid Relay Token (starting with 'rbk') is required to use Web Checkout features.")
+            raise ValueError("A valid Relay Token (starting with 'rbk') is required to use Relay features.")
         
     def __check_bakong_token(self):
         if not self.__bakong_token:
@@ -147,10 +220,13 @@ class KHQR:
 
     def create_qr(
         self,
+        amount: float = 0.0,
+        return_url: str | None = None,
+        success_url: str | None = None,
+        cancel_url: str | None = None,
         account_id: str | None = None,
         merchant_name: str | None = None,
         merchant_city: str | None = None,
-        amount: float = 0.0,
         currency: str | None = None,
         store_label: str | None = None,
         phone_number: str | None = None,
@@ -158,27 +234,50 @@ class KHQR:
         terminal_label: str | None = None,
         static: bool = False,
         expiration: int = 1,
+        return_dict: bool = False,
         **kwargs
-    ) -> str:
+    ) -> Union[KHQRResponse, dict[str, Any]]:
         """
-        Create a KHQR string compliant with the Bakong system.
+        Generate a KHQR code transaction string and optional Web Checkout session.
+
+        When using Bakong Relay (`rbk_...` token), merchant account information and currency 
+        are automatically derived from the store's configured payment link. Only `amount` 
+        is mandatory.
 
         Args:
+            amount (float | int): **[Required]** Transaction amount to collect (e.g. 10.0 or 15000).
+                Minimum for USD is 0.01; Minimum for KHR is 100.
+            return_url (str, optional): Default redirect destination URL after payment 
+                completion or cancellation. Must match your store's verified domain.
+            success_url (str, optional): Target destination URL specifically on successful 
+                payment completion. Must match your store's verified domain.
+            cancel_url (str, optional): Target destination URL if user cancels or session expires.
+                Must match your store's verified domain.
             account_id (str, optional): The recipient Bakong Account ID (e.g., 'your_name@bank').
-            merchant_name (str, optional): Name of the merchant (e.g., 'Your Name').
-            merchant_city (str, optional): City of the merchant (e.g., 'Phnom Penh').
-            amount (float | int): Transaction amount.
-            currency (str, optional): Currency code, either 'USD' or 'KHR'.
-            store_label (str, optional): Store label or ID.
-            phone_number (str, optional): Merchant's mobile number.
-            bill_number (str, optional): Unique bill or transaction reference.
-            terminal_label (str, optional): Terminal ID or a short description.
-            static (bool): Set to True for a static QR (no amount); Defaults to False (Dynamic).
-            expiration (int): Expiration time in days. Defaults to 1 day.
-            **kwargs: Used for backward compatibility (e.g., `bank_account`).
+                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
+            merchant_name (str, optional): Merchant display name.
+                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
+            merchant_city (str, optional): Merchant operating city (e.g., 'Phnom Penh').
+                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
+            currency (str, optional): Currency code ('USD' or 'KHR').
+                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
+            store_label (str, optional): Store branch reference or transaction title.
+            phone_number (str, optional): Merchant contact phone number.
+            bill_number (str, optional): Invoice / Order reference identifier.
+            terminal_label (str, optional): POS terminal identifier.
+            static (bool): Set to True for static QR (no amount); Defaults to False (Dynamic).
+            expiration (int): Expiration time in days (default: 1 day).
+            return_dict (bool): Set to True to return a standard dictionary instead of KHQRResponse.
+            **kwargs: Backward compatibility arguments (e.g., `bank_account`).
 
         Returns:
-            str: A formatted EMVCo-compliant KHQR string.
+            KHQRResponse | dict:
+                An enhanced KHQR string object that behaves as `str` while also exposing:
+                - `.qr` : The raw KHQR code string.
+                - `.md5` : The 32-character MD5 checksum hash.
+                - `.tran_id` : The purchase transaction identifier.
+                - `.checkout_url` : The hosted Web Checkout link (if redirect URLs are provided).
+                If `return_dict=True`, returns the raw JSON dictionary.
         """
         if "bank_account" in kwargs:
             warnings.warn(
@@ -190,10 +289,17 @@ class KHQR:
             if not account_id:
                 account_id = kwargs.pop("bank_account")
 
+        # ── ⚡️ ករណីដំណើរការជាមួយ Bakong Relay (api.bakongrelay.com) ───────────
         if self.__is_relay:
-            payload = {
+            payload: dict[str, Any] = {
                 "amount": float(amount)
             }
+            if return_url is not None:
+                payload["return_url"] = return_url
+            if success_url is not None:
+                payload["success_url"] = success_url
+            if cancel_url is not None:
+                payload["cancel_url"] = cancel_url
             if account_id is not None:
                 payload["account_id"] = account_id
             if merchant_name is not None:
@@ -219,12 +325,23 @@ class KHQR:
 
             if response.get("responseCode") == 0:
                 data = response.get("data")
-                if isinstance(data, dict) and "qr" in data:
-                    return data["qr"]
+                if isinstance(data, dict):
+                    if return_dict:
+                        return response
+
+                    qr_str = str(data.get("qr", ""))
+                    return KHQRResponse(
+                        qr=qr_str,
+                        md5=data.get("md5"),
+                        tran_id=data.get("tran_id"),
+                        checkout_url=data.get("checkout_url"),
+                        raw=response
+                    )
 
             error_msg = response.get("responseMessage", "Failed to generate KHQR via Bakong Relay.")
             raise ValueError(error_msg)
 
+        # ── ករណីដំណើរការជាមួយ NBC Bakong Token ដើម (Offline Local Generation) ───
         if not account_id:
             raise ValueError("Missing required argument: 'account_id'.")
         if not merchant_name:
@@ -260,7 +377,36 @@ class KHQR:
         qr_data += self.__timestamp.value(static, expiration)
         qr_data += self.__crc.value(qr_data)
         
-        return qr_data
+        local_md5 = self.__hash.md5(qr_data)
+
+        if return_dict:
+            return {
+                "responseCode": 0,
+                "responseMessage": "KHQR Generated Successfully.",
+                "data": {
+                    "qr": qr_data,
+                    "md5": local_md5,
+                    "tran_id": bill_number,
+                    "checkout_url": None
+                }
+            }
+
+        return KHQRResponse(
+            qr=qr_data,
+            md5=local_md5,
+            tran_id=bill_number,
+            checkout_url=None,
+            raw={
+                "responseCode": 0,
+                "responseMessage": "Local KHQR Generated",
+                "data": {
+                    "qr": qr_data,
+                    "md5": local_md5,
+                    "tran_id": bill_number,
+                    "checkout_url": None
+                }
+            }
+        )
 
     def generate_md5(self, qr: str) -> str:
         """
@@ -290,8 +436,7 @@ class KHQR:
 
         Args:
             qr (str): QR code string generated from `create_qr()` method.
-            appDeepLinkCallback (str, optional): The standard callback URL. 
-                Defaults to "https://bakong.nbc.org.kh".
+            appDeepLinkCallback (str, optional): The standard callback URL.
             appIconUrl (str, optional): URL for the app icon.
             appName (str, optional): Name of the application.
             callback (str, optional): Deprecated callback parameter.
@@ -315,7 +460,7 @@ class KHQR:
             appDeepLinkCallback = "https://bakong.nbc.org.kh"
 
         payload = {
-            "qr": qr,
+            "qr": str(qr),
             "sourceInfo": {
                 "appIconUrl": appIconUrl,
                 "appName": appName,
@@ -347,7 +492,7 @@ class KHQR:
             
         Returns:
             str | tuple[str, int]: 
-                - If `start_time` is None: Returns a string status ('PAID', 'SCANNED', 'EXPIRED', or 'UNPAID').
+                - If `start_time` is None: Returns status string ('PAID', 'SCANNED', 'EXPIRED', or 'UNPAID').
                 - If `start_time` is provided: Returns a tuple `(status, next_delay)` 
                   where `next_delay` is the suggested sleep time in seconds.
         """
@@ -456,14 +601,14 @@ class KHQR:
         md5_list: list[str]
     ) -> list[str]:
         """
-        Check the transaction status for multiple MD5 hashes.
+        Check transaction status for multiple MD5 hashes simultaneously.
 
         Args:
-            md5_list (list[str]): A list of MD5 hashes to verify.
+            md5_list (list[str]): A list of MD5 hashes to verify (max 50).
 
         Returns:
             list[str]: A list containing only the MD5 hashes of transactions 
-                that have been confirmed as paid.
+                confirmed as paid.
         """
         if len(md5_list) > 50:
             raise ValueError("The md5_list exceeds the allowed limit of 50 hashes per request.")
@@ -494,13 +639,13 @@ class KHQR:
 
         Args:
             qr (str): Raw KHQR string.
-            format (str): Desired output format ('png', 'jpeg', 'webp', 'bytes', 'base64', 'base64_uri').
+            format (str): Desired format ('png', 'jpeg', 'webp', 'bytes', 'base64', 'base64_uri').
             output_path (str, optional): Target file path if saving to disk.
 
         Returns:
-            str | bytes: File path, base64 string, or raw bytes depending on the chosen format.
+            str | bytes: File path, base64 string, or raw bytes depending on chosen format.
         """
-        result = self.__image_tools.generate(qr)
+        result = self.__image_tools.generate(str(qr))
 
         if format.lower() in ("jpeg", "jpg"):
             return result.to_jpeg(output_path)
@@ -515,84 +660,68 @@ class KHQR:
         else:
             return result.to_png(output_path)
 
+    # ── ⚡️ DEPRECATED WEB CHECKOUT METHODS ─────────────────────────────────
+
     def create_webcheckout(
         self,
-        trans_id: str,
-        account_id: str,
-        merchant_name: str,
-        merchant_city: str,
-        amount: float,
-        currency: str,
-        return_url: str,
-        webhook_url: str,
+        trans_id: str | None = None,
+        account_id: str | None = None,
+        merchant_name: str | None = None,
+        merchant_city: str | None = None,
+        amount: float = 0.0,
+        currency: str | None = None,
+        return_url: str | None = None,
+        webhook_url: str | None = None,
         lang: str = "km",
-        ttl: int = 5
+        ttl: int = 5,
+        **kwargs
     ) -> dict[str, Any]:
         """
-        Create a new Bakong Web Checkout session.
+        [DEPRECATED] Create a Bakong Web Checkout session.
 
-        Args:
-            trans_id (str): Unique transaction tracking identifier.
-            account_id (str): Destination Bakong Account ID.
-            merchant_name (str): Merchant display name.
-            merchant_city (str): Merchant city.
-            amount (float): Transaction amount.
-            currency (str): Currency code ('USD' or 'KHR').
-            return_url (str): Redirect URL upon payment completion.
-            webhook_url (str): Server callback URL for instantaneous events.
-            lang (str): Interface language ('km', 'en', 'zh'). Defaults to 'km'.
-            ttl (int): Session Time-To-Live in minutes. Defaults to 5.
+        This method is deprecated since version 0.7.0. Web Checkout creation 
+        is now integrated directly into `create_qr()`.
 
-        Returns:
-            dict[str, Any]: Web Checkout creation response.
+        Example Migration:
+        >>> res = khqr.create_qr(amount=10.0, return_url="https://yourstore.com/checkout/return")
+        >>> print("Checkout URL:", res.checkout_url)
         """
+        warnings.warn(
+            "Method 'create_webcheckout' is deprecated and will be removed in a future release. "
+            "Please use 'create_qr(amount=..., return_url=...)' instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self.__check_relay_token()
-        
-        payload = {
-            "trans_id": trans_id,
-            "req_custom": {
-                "lang": lang,
-                "ttl": ttl
-            },
-            "req_khqr": {
-                "account_id": account_id,
-                "merchant_name": merchant_name,
-                "merchant_city": merchant_city,
-                "amount": amount,
-                "currency": currency
-            },
-            "req_url": {
-                "return_url": return_url,
-                "webhook_url": webhook_url
-            }
-        }
-        
-        response = self.__post_request("/web_checkouts/create", payload)
-        
-        if response.get("responseCode") == 1:
-            msg = response.get("responseMessage", "")
-            if "not whitelisted" in msg or "banned" in msg:
-                response["responseMessage"] = f"{msg} Please whitelist your domains via Telegram: https://t.me/bakong_relay_bot?start=relay_signup"
-                
-        return response
+
+        res = self.create_qr(
+            amount=amount,
+            return_url=return_url,
+            success_url=kwargs.get("success_url"),
+            cancel_url=kwargs.get("cancel_url"),
+            account_id=account_id,
+            merchant_name=merchant_name,
+            merchant_city=merchant_city,
+            currency=currency,
+            bill_number=trans_id,
+            return_dict=True
+        )
+        return res if isinstance(res, dict) else res.raw
 
     def get_webcheckout(
         self,
         session_id: str
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
         """
-        Retrieve transaction details and status of a specific Web Checkout session.
+        [DEPRECATED] Retrieve transaction details and status of a Web Checkout session.
 
-        Args:
-            session_id (str): The alphanumeric session ID.
-
-        Returns:
-            dict[str, Any]: Checkout session status and transaction details.
+        This method is deprecated since version 0.7.0. Please use `check_payment(md5)` 
+        or `get_payment(md5)` instead.
         """
+        warnings.warn(
+            "Method 'get_webcheckout' is deprecated. Please use 'check_payment(md5)' or 'get_payment(md5)' instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self.__check_relay_token()
-        
-        payload = {
-            "session_id": session_id
-        }
-        
-        return self.__post_request("/web_checkouts/details", payload)
+        return self.get_payment(session_id)

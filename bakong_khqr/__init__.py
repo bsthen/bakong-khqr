@@ -1,3 +1,4 @@
-from .khqr import KHQR
+# bakong_khqr/__init__.py
+from .khqr import KHQR, KHQRResponse
 
-__all__ = ["KHQR"]
+__all__ = ["KHQR", "KHQRResponse"]
