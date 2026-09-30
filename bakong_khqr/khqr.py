@@ -32,7 +32,7 @@ class KHQRResponse(str):
     
     It maintains 100% backward compatibility by acting directly as the raw KHQR string 
     (e.g., in print(), len(), slicing, or passing to qr_image()), while simultaneously 
-    exposing all metadata returned by the Bakong Relay API server:
+    exposing all metadata returned by the KHQR.dev API server:
 
     Attributes:
         qr (str): The raw EMVCo KHQR code string.
@@ -115,21 +115,22 @@ class KHQR:
         self.__global_unique_identifier = GlobalUniqueIdentifier()
         self.__bakong_token = bakong_token.strip() if bakong_token else None
 
+        # ⚡️ ភ្ជាប់ទៅកាន់ Endpoint ថ្មី api.khqr.dev/v1
         if self.__bakong_token and self.__bakong_token.startswith("rbk"):
-            self.__bakong_api = "https://api.bakongrelay.com/v1"
+            self.__bakong_api = "https://api.khqr.dev/v1"
             self.__is_relay = True
         else:
             self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
             self.__is_relay = False
     
     def __check_relay_token(self):
-        """Helper method to ensure the token is a Bakong Relay token."""
+        """Helper method to ensure the token is a Relay token."""
         if not self.__bakong_token or not self.__bakong_token.startswith("rbk"):
             raise ValueError("A valid Relay Token (starting with 'rbk') is required to use Relay features.")
         
     def __check_bakong_token(self):
         if not self.__bakong_token:
-            raise ValueError("Bakong Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+            raise ValueError("Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
 
     def __post_request(self, endpoint: str, payload: dict[str, Any] | list[Any]) -> dict[str, Any]:
         self.__check_bakong_token()
@@ -149,10 +150,10 @@ class KHQR:
                 response = conn.getresponse()
                 response_data = response.read().decode("utf-8")
             except TimeoutError:
-                target = "Bakong Relay API" if self.__is_relay else "Bakong API"
+                target = "KHQR.dev API" if self.__is_relay else "Bakong API"
                 raise ValueError(f"{target} took too long to respond. Please check transaction status later.")
             except Exception as e:
-                target = "Bakong Relay API" if self.__is_relay else "Bakong API"
+                target = "KHQR.dev API" if self.__is_relay else "Bakong API"
                 raise ValueError(f"Failed to connect to {target}: {e}")
 
             if response.status in (200, 201):
@@ -162,7 +163,7 @@ class KHQR:
                         raise ValueError("API returned valid JSON but it is not a dictionary.")
                     return data
                 except json.JSONDecodeError:
-                    raise ValueError(f"Bakong returned invalid JSON: {response_data}")
+                    raise ValueError(f"Server returned invalid JSON: {response_data}")
             
             if self.__is_relay:
                 try:
@@ -190,11 +191,11 @@ class KHQR:
                     pass
 
                 relay_errors = {
-                    400: "Bad request to Bakong Relay. Please check your parameters.",
+                    400: "Bad request to KHQR.dev. Please check your parameters.",
                     401: "Unauthorized: Token is missing, expired, invalid, or has reached its usage limit.",
-                    429: "Too many requests to Bakong Relay. Please wait before trying again.",
-                    500: "Bakong Relay encountered an internal server error.",
-                    503: "Bakong Relay is currently undergoing maintenance. Please try again shortly."
+                    429: "Too many requests to KHQR.dev. Please wait before trying again.",
+                    500: "KHQR.dev encountered an internal server error.",
+                    503: "KHQR.dev is currently undergoing maintenance. Please try again shortly."
                 }
                 raise ValueError(relay_errors.get(response.status, f"HTTP {response.status}: {response_data}"))
 
@@ -240,7 +241,7 @@ class KHQR:
         """
         Generate a KHQR code transaction string and optional Web Checkout session.
 
-        When using Bakong Relay (`rbk_...` token), merchant account information and currency 
+        When using KHQR.dev (`rbk_...` token), merchant account information and currency 
         are automatically derived from the store's configured payment link. Only `amount` 
         is mandatory.
 
@@ -289,7 +290,7 @@ class KHQR:
             if not account_id:
                 account_id = kwargs.pop("bank_account")
 
-        # ── ⚡️ ករណីដំណើរការជាមួយ Bakong Relay (api.bakongrelay.com) ───────────
+        # ── ⚡️ ករណីដំណើរការជាមួយ KHQR.dev (api.khqr.dev) ──────────────────────
         if self.__is_relay:
             payload: dict[str, Any] = {
                 "amount": float(amount)
@@ -338,7 +339,7 @@ class KHQR:
                         raw=response
                     )
 
-            error_msg = response.get("responseMessage", "Failed to generate KHQR via Bakong Relay.")
+            error_msg = response.get("responseMessage", "Failed to generate KHQR via KHQR.dev.")
             raise ValueError(error_msg)
 
         # ── ករណីដំណើរការជាមួយ NBC Bakong Token ដើម (Offline Local Generation) ───
@@ -677,7 +678,7 @@ class KHQR:
         **kwargs
     ) -> dict[str, Any]:
         """
-        [DEPRECATED] Create a Bakong Web Checkout session.
+        [DEPRECATED] Create a Web Checkout session.
 
         This method is deprecated since version 0.7.0. Web Checkout creation 
         is now integrated directly into `create_qr()`.

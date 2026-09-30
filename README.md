@@ -7,9 +7,9 @@
 </p>
 
 > [!TIP]
-> **Bakong Relay (bakongrelay.com) is Fully Active & Supported!**  
-> You can integrate Bakong KHQR using either an official **NBC Bakong Developer Token** or a **Bakong Relay Token (`rbk...`)**.  
-> Register an account, generate store tokens, and manage subscriptions directly via the **Client Portal**: [👉 https://dash.bakongrelay.com](https://dash.bakongrelay.com)
+> **KHQR.dev (khqr.dev) is Fully Active & Supported!**  
+> You can integrate Bakong KHQR using either an official **NBC Bakong Developer Token** or a **KHQR.dev Token (`rbk...`)**.  
+> Register an account, generate store tokens, and manage subscriptions directly via the **Client Portal**: [👉 https://dash.khqr.dev](https://dash.khqr.dev)
 
 <p align="center">
 A Python package for generating payment transactions compliant with the Bakong KHQR standard.
@@ -68,8 +68,8 @@ A Python package for generating payment transactions compliant with the Bakong K
 
 - Python 3.8+
 - A Bakong account with full KYC verification
-- An NBC Bakong Developer Token or a **Bakong Relay Token (`rbk...`)**  
-  *(Sign up and generate your token at [dash.bakongrelay.com](https://dash.bakongrelay.com))*
+- An NBC Bakong Developer Token or a **KHQR.dev Token (`rbk...`)**  
+  *(Sign up and generate your token at [dash.khqr.dev](https://dash.khqr.dev))*
 
 ## 📦 Installation
 
@@ -83,11 +83,11 @@ or Update to the Latest Version:
 pip3 install --upgrade bakong-khqr
 ```
 
-## 🚀 Key Differences: Bakong Relay vs. NBC Official API
+## 🚀 Key Differences: KHQR.dev vs. NBC Official API
 
-| Feature / Behavior | Bakong Relay (`rbk...` token) | Bakong NBC (Developer Token / Offline) |
+| Feature / Behavior | KHQR.dev (`rbk...` token) | Bakong NBC (Developer Token / Offline) |
 | :--- | :--- | :--- |
-| **API Endpoint** | `https://api.bakongrelay.com/v1` | `https://api-bakong.nbc.gov.kh/v1` |
+| **API Endpoint** | `https://api.khqr.dev/v1` | `https://api-bakong.nbc.gov.kh/v1` |
 | **Hosting & IP Restriction** | **Global Access** (No Cambodia IP restrictions) | Restricted to Cambodia IP addresses |
 | **`create_qr()` Requirements** | Only `amount` is strictly required; merchant and currency details are auto-resolved from your RBK Token. | Requires `account_id`, `merchant_name`, `merchant_city`, `amount`, and `currency`. |
 | **Amount Validation** | Handled directly by Relay Backend (Min USD $0.01 / Min KHR 100). | Static or Dynamic offline EMVCo generation. |
@@ -100,9 +100,9 @@ pip3 install --upgrade bakong-khqr
 
 ## 💻 Usage Guide
 
-### 1. Using Bakong Relay (`rbk...` Token) — Recommended
+### 1. Using KHQR.dev (`rbk...` Token) — Recommended
 
-When using an `rbk...` token, `create_qr()` only requires `amount`. All merchant and currency details are automatically retrieved from your Store Link configured in the Bakong Relay dashboard.
+When using an `rbk...` token, `create_qr()` only requires `amount`. All merchant and currency details are automatically retrieved from your Store Link configured in the KHQR.dev dashboard.
 
 The returned `res` object inherits directly from `str` (acting as the raw KHQR string) while also providing access to metadata attributes (`.qr`, `.md5`, `.tran_id`, `.checkout_url`):
 
@@ -110,7 +110,7 @@ The returned `res` object inherits directly from `str` (acting as the raw KHQR s
 import time
 from bakong_khqr import KHQR
 
-# Initialize with your Bakong Relay Store Token
+# Initialize with your KHQR.dev Store Token
 khqr = KHQR("rbk_xxxxxxxxxxxxxxxxxxxx")
 
 # 1. Generate Dynamic KHQR (amount only; backend auto-detects currency & merchant info)
@@ -249,9 +249,9 @@ The `check_payment()` method dynamically adjusts `next_delay` when `start_time` 
 
 | Transaction State | Token Type | Recommended Delay | Explanation |
 | :--- | :--- | :--- | :--- |
-| **`SCANNED`** | Bakong Relay (`rbk...`) | `3` seconds | Customer has scanned the QR code. Tight polling for instant confirmation. |
+| **`SCANNED`** | KHQR.dev (`rbk...`) | `3` seconds | Customer has scanned the QR code. Tight polling for instant confirmation. |
 | **`PAID`** | Both | `0` seconds | Terminal state. Payment confirmed; break out of the loop immediately. |
-| **`EXPIRED`** | Bakong Relay (`rbk...`) | `0` seconds | Terminal state. Session timed out; break out of the loop immediately. |
+| **`EXPIRED`** | KHQR.dev (`rbk...`) | `0` seconds | Terminal state. Session timed out; break out of the loop immediately. |
 | **`UNPAID`** (0 – 5 min) | Both | `5` seconds | Active transaction window. High likelihood of scanning. |
 | **`UNPAID`** (5 – 15 min) | Both | `10` seconds | Customer might be delayed; reduces request frequency. |
 | **`UNPAID`** (15 – 60 min) | Both | `15` seconds | Extended transaction window. |
@@ -261,7 +261,7 @@ The `check_payment()` method dynamically adjusts `next_delay` when `start_time` 
 
 ## 🛠️ Method Reference
 
-- **`create_qr(...) -> KHQRResponse`**: Creates an EMVCo-compliant KHQR string. For `rbk` tokens, requests `api.bakongrelay.com`; for NBC tokens or offline use, compiles locally. Returns a `KHQRResponse` object that acts as a string and exposes `.qr`, `.md5`, `.tran_id`, and `.checkout_url`.
+- **`create_qr(...) -> KHQRResponse`**: Creates an EMVCo-compliant KHQR string. For `rbk` tokens, requests `api.khqr.dev`; for NBC tokens or offline use, compiles locally. Returns a `KHQRResponse` object that acts as a string and exposes `.qr`, `.md5`, `.tran_id`, and `.checkout_url`.
 - **`generate_md5(qr: str) -> str`**: Computes the 32-character hexadecimal MD5 hash for the QR code.
 - **`generate_deeplink(...) -> str | None`**: Generates a mobile banking deep link.
 - **`check_payment(md5: str, start_time: float | None = None) -> str | tuple[str, int]`**:
@@ -279,7 +279,7 @@ The `check_payment()` method dynamically adjusts `next_delay` when `start_time` 
 
 > [!NOTE]
 > Hosted Web Checkout is now directly unified into `create_qr()`.  
-> To enable Web Checkout, pass `return_url`, `success_url`, or `cancel_url` to `create_qr()`. The target URLs must match the verified domain configured in your store dashboard at [dash.bakongrelay.com](https://dash.bakongrelay.com).
+> To enable Web Checkout, pass `return_url`, `success_url`, or `cancel_url` to `create_qr()`. The target URLs must match the verified domain configured in your store dashboard at [dash.khqr.dev](https://dash.khqr.dev).
 
 ```python
 res = khqr.create_qr(
