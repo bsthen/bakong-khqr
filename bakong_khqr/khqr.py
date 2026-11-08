@@ -4,6 +4,7 @@ import time
 import json
 import warnings
 import http.client
+from dataclasses import dataclass, field
 from typing import Any, Union
 from urllib.parse import urlparse
 from contextlib import closing
@@ -26,13 +27,26 @@ from .sdk.global_unique_identifier import GlobalUniqueIdentifier
 from .sdk.version import __version__
 
 
+@dataclass
+class KHQRConfig:
+    """
+    Configuration dataclass for KHQR client initialization.
+
+    Attributes:
+        token (str | None): Merchant API Token / Bakong Developer Token.
+        base_url (str | None): Custom Gateway / Relay base API URL (e.g. 'https://api.yourdomain.com/v1').
+    """
+    token: str | None = None
+    base_url: str | None = None
+
+
 class KHQRResponse(str):
     """
     An enhanced KHQR string response that seamlessly inherits from Python's built-in `str`.
     
     It maintains 100% backward compatibility by acting directly as the raw KHQR string 
     (e.g., in print(), len(), slicing, or passing to qr_image()), while simultaneously 
-    exposing all metadata returned by the KHQR.dev API server:
+    exposing all metadata returned by the Gateway / Relay API:
 
     Attributes:
         qr (str): The raw EMVCo KHQR code string.
@@ -98,7 +112,28 @@ class KHQRResponse(str):
 
 
 class KHQR:
-    def __init__(self, bakong_token: str | None = None):
+    """
+    Bakong KHQR Generator & Gateway Verification SDK.
+
+    Can be initialized in multiple backward-compatible ways:
+    1. Legacy Token only:
+       >>> khqr = KHQR("your_token_here")
+
+    2. Custom Gateway Endpoint & Token:
+       >>> khqr = KHQR(token="your_token", base_url="https://api.yourdomain.com/v1")
+
+    3. Using KHQRConfig Dataclass:
+       >>> config = KHQRConfig(token="your_token", base_url="https://api.yourdomain.com/v1")
+       >>> khqr = KHQR(config=config)
+    """
+
+    def __init__(
+        self,
+        bakong_token: Union[str, KHQRConfig, None] = None,
+        base_url: str | None = None,
+        token: str | None = None,
+        config: KHQRConfig | None = None,
+    ):
         self.__crc = CRC()
         self.__mcc = MCC()
         self.__hash = HASH()
@@ -113,30 +148,63 @@ class KHQR:
         self.__additional_data_field = AdditionalDataField()
         self.__payload_format_indicator = PayloadFormatIndicator()
         self.__global_unique_identifier = GlobalUniqueIdentifier()
-        self.__bakong_token = bakong_token.strip() if bakong_token else None
 
-        # ⚡️ ភ្ជាប់ទៅកាន់ Endpoint ថ្មី api.khqr.dev/v1
-        if self.__bakong_token and self.__bakong_token.startswith("rbk"):
+        # ⚡️ ១. ពិនិត្យករណី User បញ្ចូល KHQRConfig មកតាម Positional Argument
+        if isinstance(bakong_token, KHQRConfig):
+            config = bakong_token
+            bakong_token = None
+
+        # ⚡️ ២. ទាញយក Config បើមាន
+        if config is not None:
+            if isinstance(config, KHQRConfig):
+                token = token or config.token
+                base_url = base_url or config.base_url
+            elif isinstance(config, dict):
+                token = token or config.get("token")
+                base_url = base_url or config.get("base_url")
+
+        # ⚡️ ៣. កំណត់ Token (គាំទ្រទាំង token និង bakong_token ចាស់)
+        resolved_token = token or bakong_token
+        self.__bakong_token = resolved_token.strip() if resolved_token else None
+
+        # ⚡️ ៤. កំណត់ Base URL និង Protocol Mode
+        if base_url:
+            self.__bakong_api = base_url.strip().rstrip("/")
+            self.__is_relay = True
+        elif self.__bakong_token and self.__bakong_token.startswith("rbk"):
+            # Fallback សម្រាប់ Token ចាស់ដែលគ្មាន base_url
             self.__bakong_api = "https://api.khqr.dev/v1"
             self.__is_relay = True
         else:
             self.__bakong_api = "https://api-bakong.nbc.gov.kh/v1"
             self.__is_relay = False
     
+    @property
+    def base_url(self) -> str:
+        """Return the current active Base API URL."""
+        return self.__bakong_api
+
     def __check_relay_token(self):
-        """Helper method to ensure the token is a Relay token."""
-        if not self.__bakong_token or not self.__bakong_token.startswith("rbk"):
-            raise ValueError("A valid Relay Token (starting with 'rbk') is required to use Relay features.")
+        """Helper method to ensure the client is configured in Gateway / Relay mode."""
+        if not self.__is_relay:
+            raise ValueError("A custom base_url or Relay Token is required to use Gateway features.")
         
     def __check_bakong_token(self):
         if not self.__bakong_token:
-            raise ValueError("Developer Token is required for KHQR class initialization. Example usage: khqr = KHQR('your_token_here').")
+            raise ValueError(
+                "Developer Token is required for API requests. "
+                "Example usage: khqr = KHQR(token='your_token_here', base_url='https://...')"
+            )
 
     def __post_request(self, endpoint: str, payload: dict[str, Any] | list[Any]) -> dict[str, Any]:
         self.__check_bakong_token()
         
         parsed_url = urlparse(self.__bakong_api)
-        with closing(http.client.HTTPSConnection(parsed_url.netloc, timeout=12)) as conn:
+        is_https = parsed_url.scheme.lower() == "https"
+        port = parsed_url.port or (443 if is_https else 80)
+        connection_class = http.client.HTTPSConnection if is_https else http.client.HTTPConnection
+
+        with closing(connection_class(parsed_url.hostname, port, timeout=12)) as conn:
             headers = {
                 "Authorization": f"Bearer {self.__bakong_token}",
                 "Content-Type": "application/json",
@@ -150,10 +218,10 @@ class KHQR:
                 response = conn.getresponse()
                 response_data = response.read().decode("utf-8")
             except TimeoutError:
-                target = "KHQR.dev API" if self.__is_relay else "Bakong API"
+                target = "Gateway API" if self.__is_relay else "Bakong API"
                 raise ValueError(f"{target} took too long to respond. Please check transaction status later.")
             except Exception as e:
-                target = "KHQR.dev API" if self.__is_relay else "Bakong API"
+                target = "Gateway API" if self.__is_relay else "Bakong API"
                 raise ValueError(f"Failed to connect to {target}: {e}")
 
             if response.status in (200, 201):
@@ -191,11 +259,11 @@ class KHQR:
                     pass
 
                 relay_errors = {
-                    400: "Bad request to KHQR.dev. Please check your parameters.",
+                    400: "Bad request to Gateway API. Please check your parameters.",
                     401: "Unauthorized: Token is missing, expired, invalid, or has reached its usage limit.",
-                    429: "Too many requests to KHQR.dev. Please wait before trying again.",
-                    500: "KHQR.dev encountered an internal server error.",
-                    503: "KHQR.dev is currently undergoing maintenance. Please try again shortly."
+                    429: "Too many requests to Gateway API. Please wait before trying again.",
+                    500: "Gateway API encountered an internal server error.",
+                    503: "Gateway API is currently undergoing maintenance. Please try again shortly."
                 }
                 raise ValueError(relay_errors.get(response.status, f"HTTP {response.status}: {response_data}"))
 
@@ -241,27 +309,20 @@ class KHQR:
         """
         Generate a KHQR code transaction string and optional Web Checkout session.
 
-        When using KHQR.dev (`rbk_...` token), merchant account information and currency 
-        are automatically derived from the store's configured payment link. Only `amount` 
-        is mandatory.
+        When configured with a Gateway / Relay base_url, merchant account information 
+        and currency can be automatically derived from the server configuration.
 
         Args:
             amount (float | int): **[Required]** Transaction amount to collect (e.g. 10.0 or 15000).
                 Minimum for USD is 0.01; Minimum for KHR is 100.
             return_url (str, optional): Default redirect destination URL after payment 
-                completion or cancellation. Must match your store's verified domain.
-            success_url (str, optional): Target destination URL specifically on successful 
-                payment completion. Must match your store's verified domain.
+                completion or cancellation.
+            success_url (str, optional): Target destination URL specifically on successful payment.
             cancel_url (str, optional): Target destination URL if user cancels or session expires.
-                Must match your store's verified domain.
             account_id (str, optional): The recipient Bakong Account ID (e.g., 'your_name@bank').
-                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
             merchant_name (str, optional): Merchant display name.
-                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
             merchant_city (str, optional): Merchant operating city (e.g., 'Phnom Penh').
-                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
             currency (str, optional): Currency code ('USD' or 'KHR').
-                Required for standard NBC tokens; Optional/Deprecated for Relay tokens.
             store_label (str, optional): Store branch reference or transaction title.
             phone_number (str, optional): Merchant contact phone number.
             bill_number (str, optional): Invoice / Order reference identifier.
@@ -290,7 +351,7 @@ class KHQR:
             if not account_id:
                 account_id = kwargs.pop("bank_account")
 
-        # ── ⚡️ ករណីដំណើរការជាមួយ KHQR.dev (api.khqr.dev) ──────────────────────
+        # ── ⚡️ ករណីដំណើរការជាមួយ Gateway / Relay Endpoint ──────────────────────
         if self.__is_relay:
             payload: dict[str, Any] = {
                 "amount": float(amount)
@@ -339,7 +400,7 @@ class KHQR:
                         raw=response
                     )
 
-            error_msg = response.get("responseMessage", "Failed to generate KHQR via KHQR.dev.")
+            error_msg = response.get("responseMessage", "Failed to generate KHQR via Gateway API.")
             raise ValueError(error_msg)
 
         # ── ករណីដំណើរការជាមួយ NBC Bakong Token ដើម (Offline Local Generation) ───
@@ -682,10 +743,6 @@ class KHQR:
 
         This method is deprecated since version 0.7.0. Web Checkout creation 
         is now integrated directly into `create_qr()`.
-
-        Example Migration:
-        >>> res = khqr.create_qr(amount=10.0, return_url="https://yourstore.com/checkout/return")
-        >>> print("Checkout URL:", res.checkout_url)
         """
         warnings.warn(
             "Method 'create_webcheckout' is deprecated and will be removed in a future release. "
